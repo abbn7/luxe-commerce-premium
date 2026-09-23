@@ -1,5 +1,7 @@
 'use client';
 
+import MediaForm from './MediaForm';
+
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
@@ -23,10 +25,16 @@ export default function AboutForm({ initial }: { initial: AboutFormInitial }) {
 
   const [form, setForm] = useState<AboutFormInitial>(initial);
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    kind: 'ok' | 'err';
+    text: string;
+  } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  function set<K extends keyof AboutFormInitial>(key: K, value: AboutFormInitial[K]) {
+  function set<K extends keyof AboutFormInitial>(
+    key: K,
+    value: AboutFormInitial[K]
+  ) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
@@ -53,7 +61,7 @@ export default function AboutForm({ initial }: { initial: AboutFormInitial }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
+    <MediaForm onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
       <div className="admin-card p-5 space-y-4">
         <div className="grid md:grid-cols-2 gap-4">
           <Field label={t('pageTitleEn')} error={fieldErrors.titleEn}>
@@ -99,17 +107,25 @@ export default function AboutForm({ initial }: { initial: AboutFormInitial }) {
 
       <div className="admin-card p-5 space-y-3">
         <p className="admin-label">{t('images')}</p>
-        <ImageUploader mediaIds={form.imageIds} onChange={(ids) => set('imageIds', ids)} max={8} />
+        <ImageUploader
+          preset="editorial"
+          mediaIds={form.imageIds}
+          onChange={(ids) => set('imageIds', ids)}
+          max={8}
+        />
       </div>
 
       {notice ? (
-        <p role="status" className={`text-sm ${notice.kind === 'ok' ? 'text-[#2f6b4f]' : 'text-[#8c2f2f]'}`}>
+        <p
+          role="status"
+          className={`text-sm ${notice.kind === 'ok' ? 'text-[#2f6b4f]' : 'text-[#8c2f2f]'}`}
+        >
           {notice.text}
         </p>
       ) : null}
       <button type="submit" className="admin-btn" disabled={busy}>
         {busy ? '…' : tCommon('save')}
       </button>
-    </form>
+    </MediaForm>
   );
 }

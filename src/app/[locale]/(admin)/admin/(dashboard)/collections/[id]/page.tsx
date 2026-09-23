@@ -1,6 +1,10 @@
+import { readPresentation } from '@/lib/media/presentation';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { collectionById, collectionProductIds } from '@/lib/db/repos/collections';
+import {
+  collectionById,
+  collectionProductIds
+} from '@/lib/db/repos/collections';
 import { listAllProductsForAdmin } from '@/lib/db/repos/products';
 import CollectionForm from '@/components/admin/CollectionForm';
 
@@ -33,6 +37,7 @@ export default async function EditCollectionPage({ params }: Props) {
           descriptionEn: collection.description_en,
           descriptionAr: collection.description_ar,
           imageMediaId: collection.image_media_id,
+          imagePresentation: readPresentation(collection.image_presentation),
           isVisible: collection.is_visible === 1,
           sortOrder: collection.sort_order,
           productIds: collectionProductIds(collection.id)

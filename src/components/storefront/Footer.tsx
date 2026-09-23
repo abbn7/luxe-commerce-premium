@@ -3,14 +3,22 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import {
-  InstagramIcon, FacebookIcon, TikTokIcon, XIcon, YoutubeIcon,
-  WhatsappIcon, PhoneIcon, MailIcon, PinIcon
+  InstagramIcon,
+  FacebookIcon,
+  TikTokIcon,
+  XIcon,
+  YoutubeIcon,
+  WhatsappIcon,
+  PhoneIcon,
+  MailIcon,
+  PinIcon
 } from '@/components/ui/Icons';
 import SmartImage from '@/components/ui/SmartImage';
 
 export interface FooterData {
   storeName: string;
   logoMediaId: number | null;
+  tagline: string;
   social: { key: string; url: string }[];
   contact: {
     phone: string;
@@ -21,7 +29,10 @@ export interface FooterData {
   policies: { key: string; title: string }[];
 }
 
-const socialIcons: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+const socialIcons: Record<
+  string,
+  React.ComponentType<{ size?: number; className?: string }>
+> = {
   instagram: InstagramIcon,
   facebook: FacebookIcon,
   tiktok: TikTokIcon,
@@ -35,30 +46,58 @@ export default function Footer({ data }: { data: FooterData }) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-night text-ivory">
+    <footer className="store-footer bg-night text-ivory">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8 py-16 md:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           {/* Brand */}
           <div>
             {data.logoMediaId ? (
-              <div className="relative h-10 w-32 mb-4">
-                <SmartImage mediaId={data.logoMediaId} alt={data.storeName} sizes="128px" />
+              <div className="relative h-14 w-44 mb-4 bg-porcelain">
+                <SmartImage
+                  mediaId={data.logoMediaId}
+                  alt={data.storeName}
+                  sizes="128px"
+                />
               </div>
             ) : (
-              <p className="display-heading text-2xl tracking-[0.08em] uppercase mb-4">{data.storeName}</p>
+              <p className="display-heading text-2xl tracking-[0.08em] uppercase mb-4">
+                {data.storeName}
+              </p>
             )}
-            <p className="text-sm text-ivory/50 leading-relaxed max-w-xs">{t('newsletterBody')}</p>
+            <p className="text-sm text-ivory/70 leading-relaxed max-w-xs">
+              {data.tagline}
+            </p>
           </div>
 
           {/* Explore */}
           <nav aria-label={t('quickLinks')}>
-            <p className="eyebrow !text-ivory/40 mb-5">{t('quickLinks')}</p>
+            <p className="eyebrow !text-ivory/65 mb-5">{t('quickLinks')}</p>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/collections" className="link-luxe text-ivory/70">{tNav('collections')}</Link></li>
-              <li><Link href="/new-arrivals" className="link-luxe text-ivory/70">{tNav('newArrivals')}</Link></li>
-              <li><Link href="/lookbook" className="link-luxe text-ivory/70">{tNav('lookbook')}</Link></li>
-              <li><Link href="/about" className="link-luxe text-ivory/70">{tNav('about')}</Link></li>
-              <li><Link href="/wishlist" className="link-luxe text-ivory/70">{tNav('wishlist')}</Link></li>
+              <li>
+                <Link href="/collections" className="link-luxe text-ivory/70">
+                  {tNav('collections')}
+                </Link>
+              </li>
+              <li>
+                <Link href="/new-arrivals" className="link-luxe text-ivory/70">
+                  {tNav('newArrivals')}
+                </Link>
+              </li>
+              <li>
+                <Link href="/lookbook" className="link-luxe text-ivory/70">
+                  {tNav('lookbook')}
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className="link-luxe text-ivory/70">
+                  {tNav('about')}
+                </Link>
+              </li>
+              <li>
+                <Link href="/wishlist" className="link-luxe text-ivory/70">
+                  {tNav('wishlist')}
+                </Link>
+              </li>
             </ul>
           </nav>
 
@@ -68,7 +107,12 @@ export default function Footer({ data }: { data: FooterData }) {
             <ul className="space-y-3 text-sm">
               {data.policies.map((p) => (
                 <li key={p.key}>
-                  <Link href={`/policies/${p.key}`} className="link-luxe text-ivory/70">{p.title}</Link>
+                  <Link
+                    href={`/policies/${p.key}`}
+                    className="link-luxe text-ivory/70"
+                  >
+                    {p.title}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -80,8 +124,12 @@ export default function Footer({ data }: { data: FooterData }) {
             <ul className="space-y-3 text-sm text-ivory/70">
               {data.contact.phone && (
                 <li>
-                  <a href={`tel:${data.contact.phone}`} className="flex items-center gap-3 hover:text-ivory transition-colors">
-                    <PhoneIcon size={16} /> <span dir="ltr">{data.contact.phone}</span>
+                  <a
+                    href={`tel:${data.contact.phone}`}
+                    className="flex items-center gap-3 hover:text-ivory transition-colors"
+                  >
+                    <PhoneIcon size={16} />{' '}
+                    <span dir="ltr">{data.contact.phone}</span>
                   </a>
                 </li>
               )}
@@ -93,20 +141,25 @@ export default function Footer({ data }: { data: FooterData }) {
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 hover:text-ivory transition-colors"
                   >
-                    <WhatsappIcon size={16} /> <span dir="ltr">{data.contact.whatsapp}</span>
+                    <WhatsappIcon size={16} />{' '}
+                    <span dir="ltr">{data.contact.whatsapp}</span>
                   </a>
                 </li>
               )}
               {data.contact.email && (
                 <li>
-                  <a href={`mailto:${data.contact.email}`} className="flex items-center gap-3 hover:text-ivory transition-colors">
+                  <a
+                    href={`mailto:${data.contact.email}`}
+                    className="flex items-center gap-3 hover:text-ivory transition-colors"
+                  >
                     <MailIcon size={16} /> {data.contact.email}
                   </a>
                 </li>
               )}
               {data.contact.address && (
                 <li className="flex items-start gap-3">
-                  <PinIcon size={16} className="mt-0.5 shrink-0" /> {data.contact.address}
+                  <PinIcon size={16} className="mt-0.5 shrink-0" />{' '}
+                  {data.contact.address}
                 </li>
               )}
             </ul>
@@ -137,11 +190,14 @@ export default function Footer({ data }: { data: FooterData }) {
         </div>
 
         <div className="mt-16 pt-8 border-t border-ivory/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-ivory/40 tracking-wide">
+          <p className="text-xs text-ivory/60 tracking-wide">
             © {year} {data.storeName}. {t('rightsReserved')}.
           </p>
           {/* Discreet admin entry point */}
-          <a href="/admin" className="text-[0.65rem] text-ivory/25 hover:text-ivory/60 transition-colors tracking-[0.2em] uppercase">
+          <a
+            href="/admin"
+            className="text-[0.65rem] text-ivory/25 hover:text-ivory/60 transition-colors tracking-[0.2em] uppercase"
+          >
             Admin
           </a>
         </div>

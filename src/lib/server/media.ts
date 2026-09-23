@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+import { sectionReferencesMedia } from '@/lib/media/presentation';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -51,20 +52,34 @@ export async function processUpload(file: File): Promise<UploadResult> {
     .toBuffer();
 
   const outMeta = await sharp(outBuffer).metadata();
-  const hash = crypto.createHash('sha256').update(outBuffer).digest('hex').slice(0, 32);
+  const hash = crypto
+    .createHash('sha256')
+    .update(outBuffer)
+    .digest('hex')
+    .slice(0, 32);
   const filename = `${hash}.webp`;
 
   const db = getDb();
   const existing = db
-    .prepare('SELECT id, filename, mime, width, height, size_bytes FROM media WHERE filename = ?')
+    .prepare(
+      'SELECT id, filename, mime, width, height, size_bytes FROM media WHERE filename = ?'
+    )
     .get(filename) as MediaRecord | undefined;
   if (existing) return { ok: true, media: existing }; // content-dedup
 
   fs.writeFileSync(path.join(UPLOADS_DIR, filename), outBuffer);
 
   const info = db
-    .prepare('INSERT INTO media (filename, mime, width, height, size_bytes) VALUES (?, ?, ?, ?, ?)')
-    .run(filename, 'image/webp', outMeta.width ?? 0, outMeta.height ?? 0, outBuffer.length);
+    .prepare(
+      'INSERT INTO media (filename, mime, width, height, size_bytes) VALUES (?, ?, ?, ?, ?)'
+    )
+    .run(
+      filename,
+      'image/webp',
+      outMeta.width ?? 0,
+      outMeta.height ?? 0,
+      outBuffer.length
+    );
 
   return {
     ok: true,
@@ -81,7 +96,9 @@ export async function processUpload(file: File): Promise<UploadResult> {
 
 export function getMedia(id: number): MediaRecord | undefined {
   return getDb()
-    .prepare('SELECT id, filename, mime, width, height, size_bytes FROM media WHERE id = ?')
+    .prepare(
+      'SELECT id, filename, mime, width, height, size_bytes FROM media WHERE id = ?'
+    )
     .get(id) as MediaRecord | undefined;
 }
 
@@ -99,7 +116,9 @@ function UNLOADS_SAFE(): string {
  */
 export function deleteMedia(
   id: number
-): { ok: true } | { ok: false; reason: 'not_found' | 'in_use'; useCount: number } {
+):
+  | { ok: true }
+  | { ok: false; reason: 'not_found' | 'in_use'; useCount: number } {
   const db = getDb();
   const media = getMedia(id);
   if (!media) return { ok: false, reason: 'not_found', useCount: 0 };
@@ -116,7 +135,10 @@ export function deleteMedia(
   return { ok: true };
 }
 
-function countReferences(db: import('better-sqlite3').Database, mediaId: number): number {
+function countReferences(
+  db: import('better-sqlite3').Database,
+  mediaId: number
+): number {
   let count = 0;
 
   const settings = db
@@ -143,28 +165,37 @@ function countReferences(db: import('better-sqlite3').Database, mediaId: number)
   }
 
   count += (
-    db.prepare('SELECT COUNT(*) AS c FROM collections WHERE image_media_id = ?').get(mediaId) as { c: number }
+    db
+      .prepare('SELECT COUNT(*) AS c FROM collections WHERE image_media_id = ?')
+      .get(mediaId) as { c: number }
   ).c;
   count += (
-    db.prepare('SELECT COUNT(*) AS c FROM lookbook_items WHERE image_media_id = ?').get(mediaId) as { c: number }
+    db
+      .prepare(
+        'SELECT COUNT(*) AS c FROM lookbook_items WHERE image_media_id = ?'
+      )
+      .get(mediaId) as { c: number }
   ).c;
 
-  const sectionRows = db.prepare('SELECT config FROM home_sections').all() as { config: string }[];
+  const sectionRows = db.prepare('SELECT config FROM home_sections').all() as {
+    config: string;
+  }[];
   for (const row of sectionRows) {
     try {
       const c = JSON.parse(row.config);
-      if (c.imageMediaId === mediaId) count++;
+      if (sectionReferencesMedia(c, mediaId)) count++;
     } catch {
       /* ignore */
     }
   }
 
-  const pageRow = db.prepare("SELECT image_ids FROM pages WHERE key = 'about'").get() as
-    | { image_ids: string }
-    | undefined;
+  const pageRow = db
+    .prepare("SELECT image_ids FROM pages WHERE key = 'about'")
+    .get() as { image_ids: string } | undefined;
   if (pageRow) {
     try {
-      if ((JSON.parse(pageRow.image_ids) as number[]).includes(mediaId)) count++;
+      if ((JSON.parse(pageRow.image_ids) as number[]).includes(mediaId))
+        count++;
     } catch {
       /* ignore */
     }
@@ -174,10 +205,14 @@ function countReferences(db: import('better-sqlite3').Database, mediaId: number)
 }
 
 /** List media (admin gallery), newest first. */
-export function listMedia(limit = 200): (MediaRecord & { usedCount: number })[] {
+export function listMedia(
+  limit = 200
+): (MediaRecord & { usedCount: number })[] {
   const db = getDb();
   const rows = db
-    .prepare('SELECT id, filename, mime, width, height, size_bytes FROM media ORDER BY id DESC LIMIT ?')
+    .prepare(
+      'SELECT id, filename, mime, width, height, size_bytes FROM media ORDER BY id DESC LIMIT ?'
+    )
     .all(limit) as MediaRecord[];
   return rows.map((r) => ({ ...r, usedCount: countReferences(db, r.id) }));
 }

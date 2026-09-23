@@ -1,11 +1,19 @@
 import { getDb } from '@/lib/db/client';
-import type { LookbookInput, PolicyInput, AboutPageInput } from '@/lib/validation/schemas';
-import { homeSectionConfigSchemas, HOME_SECTION_TYPES } from '@/lib/validation/schemas';
+import type {
+  LookbookInput,
+  PolicyInput,
+  AboutPageInput
+} from '@/lib/validation/schemas';
+import {
+  homeSectionConfigSchemas,
+  HOME_SECTION_TYPES
+} from '@/lib/validation/schemas';
 
 /** ── Lookbook ──────────────────────────────────────────────────── */
 export interface LookbookRow {
   id: number;
   image_media_id: number;
+  image_presentation: string;
   title_en: string | null;
   title_ar: string | null;
   subtitle_en: string | null;
@@ -17,7 +25,9 @@ export interface LookbookRow {
 
 export function visibleLookbook(): LookbookRow[] {
   return getDb()
-    .prepare('SELECT * FROM lookbook_items WHERE is_visible = 1 ORDER BY sort_order ASC, id ASC')
+    .prepare(
+      'SELECT * FROM lookbook_items WHERE is_visible = 1 ORDER BY sort_order ASC, id ASC'
+    )
     .all() as LookbookRow[];
 }
 
@@ -30,12 +40,13 @@ export function allLookbookForAdmin(): LookbookRow[] {
 export function createLookbookItem(input: LookbookInput): number {
   const info = getDb()
     .prepare(
-      `INSERT INTO lookbook_items (image_media_id, title_en, title_ar, subtitle_en, subtitle_ar,
+      `INSERT INTO lookbook_items (image_media_id, image_presentation, title_en, title_ar, subtitle_en, subtitle_ar,
          link_url, is_visible, sort_order)
-       VALUES (@imageMediaId, @titleEn, @titleAr, @subtitleEn, @subtitleAr, @linkUrl, @isVisible, @sortOrder)`
+       VALUES (@imageMediaId, @imagePresentation, @titleEn, @titleAr, @subtitleEn, @subtitleAr, @linkUrl, @isVisible, @sortOrder)`
     )
     .run({
       imageMediaId: input.imageMediaId,
+      imagePresentation: JSON.stringify(input.imagePresentation),
       titleEn: input.titleEn,
       titleAr: input.titleAr,
       subtitleEn: input.subtitleEn,
@@ -50,7 +61,7 @@ export function createLookbookItem(input: LookbookInput): number {
 export function updateLookbookItem(id: number, input: LookbookInput): boolean {
   const info = getDb()
     .prepare(
-      `UPDATE lookbook_items SET image_media_id = @imageMediaId, title_en = @titleEn, title_ar = @titleAr,
+      `UPDATE lookbook_items SET image_media_id = @imageMediaId, image_presentation = @imagePresentation, title_en = @titleEn, title_ar = @titleAr,
          subtitle_en = @subtitleEn, subtitle_ar = @subtitleAr, link_url = @linkUrl,
          is_visible = @isVisible, sort_order = @sortOrder
        WHERE id = @id`
@@ -58,6 +69,7 @@ export function updateLookbookItem(id: number, input: LookbookInput): boolean {
     .run({
       id,
       imageMediaId: input.imageMediaId,
+      imagePresentation: JSON.stringify(input.imagePresentation),
       titleEn: input.titleEn,
       titleAr: input.titleAr,
       subtitleEn: input.subtitleEn,
@@ -70,7 +82,9 @@ export function updateLookbookItem(id: number, input: LookbookInput): boolean {
 }
 
 export function deleteLookbookItem(id: number): boolean {
-  const info = getDb().prepare('DELETE FROM lookbook_items WHERE id = ?').run(id);
+  const info = getDb()
+    .prepare('DELETE FROM lookbook_items WHERE id = ?')
+    .run(id);
   return info.changes > 0;
 }
 
@@ -85,7 +99,9 @@ export interface HomeSectionRow {
 
 export function visibleHomeSections(): HomeSectionRow[] {
   return getDb()
-    .prepare('SELECT * FROM home_sections WHERE is_visible = 1 ORDER BY sort_order ASC, id ASC')
+    .prepare(
+      'SELECT * FROM home_sections WHERE is_visible = 1 ORDER BY sort_order ASC, id ASC'
+    )
     .all() as HomeSectionRow[];
 }
 
@@ -103,7 +119,9 @@ export function createHomeSection(
 ): number {
   const validated = homeSectionConfigSchemas[type].parse(config);
   const info = getDb()
-    .prepare('INSERT INTO home_sections (type, config, is_visible, sort_order) VALUES (?, ?, ?, ?)')
+    .prepare(
+      'INSERT INTO home_sections (type, config, is_visible, sort_order) VALUES (?, ?, ?, ?)'
+    )
     .run(type, JSON.stringify(validated), isVisible ? 1 : 0, sortOrder);
   return Number(info.lastInsertRowid);
 }
@@ -117,13 +135,17 @@ export function updateHomeSection(
 ): boolean {
   const validated = homeSectionConfigSchemas[type].parse(config);
   const info = getDb()
-    .prepare('UPDATE home_sections SET type = ?, config = ?, is_visible = ?, sort_order = ? WHERE id = ?')
+    .prepare(
+      'UPDATE home_sections SET type = ?, config = ?, is_visible = ?, sort_order = ? WHERE id = ?'
+    )
     .run(type, JSON.stringify(validated), isVisible ? 1 : 0, sortOrder, id);
   return info.changes > 0;
 }
 
 export function deleteHomeSection(id: number): boolean {
-  const info = getDb().prepare('DELETE FROM home_sections WHERE id = ?').run(id);
+  const info = getDb()
+    .prepare('DELETE FROM home_sections WHERE id = ?')
+    .run(id);
   return info.changes > 0;
 }
 
@@ -153,7 +175,8 @@ export function ensurePolicies(): void {
 }
 
 export function getPolicy(key: string): PolicyRow | undefined {
-  return getDb().prepare('SELECT * FROM policies WHERE key = ?').get(key) as PolicyRow | undefined;
+  return getDb().prepare('SELECT * FROM policies WHERE key = ?').get(key) as
+    PolicyRow | undefined;
 }
 
 export function visiblePolicies(): PolicyRow[] {
@@ -163,7 +186,9 @@ export function visiblePolicies(): PolicyRow[] {
 }
 
 export function allPoliciesForAdmin(): PolicyRow[] {
-  return getDb().prepare('SELECT * FROM policies ORDER BY id ASC').all() as PolicyRow[];
+  return getDb()
+    .prepare('SELECT * FROM policies ORDER BY id ASC')
+    .all() as PolicyRow[];
 }
 
 export function updatePolicy(input: PolicyInput): boolean {
@@ -207,7 +232,9 @@ export function getAboutPage(): AboutPageRow {
     image_ids: '[]'
   };
   getDb()
-    .prepare("INSERT OR IGNORE INTO pages (key, title_en, title_ar) VALUES ('about', ?, ?)")
+    .prepare(
+      "INSERT OR IGNORE INTO pages (key, title_en, title_ar) VALUES ('about', ?, ?)"
+    )
     .run(empty.title_en, empty.title_ar);
   return empty;
 }

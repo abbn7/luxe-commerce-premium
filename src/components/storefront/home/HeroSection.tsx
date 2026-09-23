@@ -1,58 +1,89 @@
 import { Link } from '@/i18n/navigation';
 import SmartImage from '@/components/ui/SmartImage';
+import { ArrowIcon } from '@/components/ui/Icons';
+import { readPresentation } from '@/lib/media/presentation';
 import type { Locale } from '@/i18n/routing';
 
-interface HeroConfig {
-  imageMediaId?: number | null;
-  headlineEn?: string;
-  headlineAr?: string;
-  sublineEn?: string;
-  sublineAr?: string;
-  ctaLabelEn?: string;
-  ctaLabelAr?: string;
-  ctaHref?: string;
-}
-
-export default function HeroSection({ config, locale }: { config: Record<string, unknown>; locale: Locale }) {
-  const c = config as HeroConfig;
-  const headline = locale === 'ar' ? c.headlineAr : c.headlineEn;
-  const subline = locale === 'ar' ? c.sublineAr : c.sublineEn;
-  const ctaLabel = locale === 'ar' ? c.ctaLabelAr : c.ctaLabelEn;
-
+/** Shared by the storefront and the unsaved section preview. Old records default to overlay. */
+export default function HeroSection({
+  config,
+  locale,
+  previewDevice,
+  priority = true,
+  headingLevel = 1
+}: {
+  config: Record<string, unknown>;
+  locale: Locale;
+  previewDevice?: 'desktop' | 'mobile';
+  priority?: boolean;
+  headingLevel?: 1 | 2;
+}) {
+  const Heading = headingLevel === 1 ? 'h1' : 'h2';
+  const text = (key: string) =>
+    typeof config[key] === 'string' ? (config[key] as string) : '';
+  const headline = text(locale === 'ar' ? 'headlineAr' : 'headlineEn');
+  const subline = text(locale === 'ar' ? 'sublineAr' : 'sublineEn');
+  const cta = text(locale === 'ar' ? 'ctaLabelAr' : 'ctaLabelEn');
+  const split = config.layout === 'split';
+  const mediaId =
+    typeof config.imageMediaId === 'number'
+      ? config.imageMediaId
+      : typeof config.mobileImageMediaId === 'number'
+        ? config.mobileImageMediaId
+        : null;
+  const mobileId =
+    typeof config.mobileImageMediaId === 'number'
+      ? config.mobileImageMediaId
+      : null;
+  const alignment = ['start', 'end'].includes(String(config.alignment))
+    ? String(config.alignment)
+    : 'center';
+  const shade =
+    typeof config.overlay === 'number'
+      ? Math.min(80, Math.max(0, config.overlay))
+      : 40;
   return (
-    <section className="relative h-[85vh] min-h-[540px] max-h-[900px] -mt-16 md:-mt-20" aria-label={headline}>
-      {/* Background */}
-      <div className="absolute inset-0 bg-night">
-        {c.imageMediaId ? (
-          <SmartImage
-            mediaId={c.imageMediaId}
-            alt=""
-            sizes="100vw"
-            priority
-            imgClassName="object-cover opacity-90"
-          />
-        ) : null}
-        <div className="absolute inset-0 bg-gradient-to-t from-night/70 via-night/20 to-night/30" />
-      </div>
-
-      {/* Content */}
-      <div className="relative h-full flex flex-col items-center justify-center text-center px-6 text-ivory">
-        {subline && <p className="eyebrow !text-ivory/70 mb-6 reveal is-visible">{subline}</p>}
-        {headline && (
-          <h1 className="display-heading text-4xl md:text-6xl lg:text-7xl max-w-4xl reveal is-visible">
-            {headline}
-          </h1>
-        )}
-        {ctaLabel && c.ctaHref && (
-          <div className="mt-10 reveal is-visible">
+    <section
+      className={`hero-shell ${split ? 'hero-split' : 'hero-overlay'} ${!mediaId ? 'hero-without-image' : ''}`}
+      aria-label={headline || undefined}
+      lang={locale}
+      dir={locale === 'ar' ? 'rtl' : 'ltr'}
+    >
+      <div className="hero-stage" data-align={alignment}>
+        <div className="hero-media">
+          {mediaId && (
+            <SmartImage
+              mediaId={mediaId}
+              mobileMediaId={mobileId}
+              alt=""
+              sizes={split ? '(max-width: 767px) 100vw, 55vw' : '100vw'}
+              priority={priority}
+              presentation={readPresentation(config.imagePresentation)}
+              previewDevice={previewDevice}
+            />
+          )}
+          {!split && mediaId && (
+            <div
+              className="hero-shade"
+              style={{ backgroundColor: `rgba(18,17,16,${shade / 100})` }}
+            />
+          )}
+        </div>
+        <div className="hero-copy">
+          {subline && <p className="eyebrow hero-eyebrow">{subline}</p>}
+          {headline && (
+            <Heading className="display-heading hero-title">{headline}</Heading>
+          )}
+          {cta && text('ctaHref') && (
             <Link
-              href={c.ctaHref}
-              className="inline-flex items-center gap-3 border border-ivory/80 text-ivory px-10 py-4 text-[0.72rem] uppercase tracking-[0.22em] hover:bg-ivory hover:text-night transition-all duration-500"
+              href={text('ctaHref')}
+              className={`hero-cta ${split || !mediaId ? 'btn-luxe' : 'btn-light'}`}
             >
-              {ctaLabel}
+              {cta}
+              <ArrowIcon size={18} />
             </Link>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </section>
   );

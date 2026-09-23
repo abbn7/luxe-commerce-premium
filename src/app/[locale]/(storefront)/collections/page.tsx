@@ -34,7 +34,10 @@ export default async function CollectionsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {collections.map((c, i) => {
-            const count = queryProducts({ collectionSlug: c.slug, limit: 1 }).total;
+            const count = queryProducts({
+              collectionSlug: c.slug,
+              limit: 1
+            }).total;
             return (
               <Reveal key={c.id} delay={i * 70}>
                 <Link href={`/collections/${c.slug}`} className="group block">
@@ -42,6 +45,7 @@ export default async function CollectionsPage() {
                     <div className="absolute inset-0 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]">
                       <SmartImage
                         mediaId={c.image_media_id}
+                        presentation={c.image_presentation}
                         alt={locale === 'ar' ? c.name_ar : c.name_en}
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />

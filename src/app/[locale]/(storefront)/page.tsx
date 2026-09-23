@@ -1,3 +1,4 @@
+import HeroSection from '@/components/storefront/home/HeroSection';
 import { getLocale } from 'next-intl/server';
 import { visibleHomeSections } from '@/lib/db/repos/content';
 import { queryProducts, productsByIds } from '@/lib/db/repos/products';
@@ -19,17 +20,43 @@ export default async function HomePage() {
     ar: settings.locale.currencySymbolAr
   };
 
+  if (sections.length === 0)
+    return (
+      <HeroSection
+        locale={locale}
+        config={{
+          headlineEn: settings.branding.storeNameEn,
+          headlineAr: settings.branding.storeNameAr,
+          sublineEn: settings.branding.taglineEn,
+          sublineAr: settings.branding.taglineAr,
+          ctaLabelEn: 'Explore collections',
+          ctaLabelAr: 'اكتشف المجموعات',
+          ctaHref: '/collections'
+        }}
+      />
+    );
+
   return (
     <HomeSectionRenderer
-      sections={sections.map((s) => ({ id: s.id, type: s.type, config: JSON.parse(s.config) }))}
+      sections={sections.map((s) => ({
+        id: s.id,
+        type: s.type,
+        config: JSON.parse(s.config)
+      }))}
       locale={locale}
       currency={currency}
-      resolveProducts={(ids) => productsByIds(ids).filter((p) => p.status === 'active')}
-      newArrivals={(limit) => queryProducts({ onlyNew: true, limit, sort: 'newest' }).products}
+      resolveProducts={(ids) =>
+        productsByIds(ids).filter((p) => p.status === 'active')
+      }
+      newArrivals={(limit) =>
+        queryProducts({ onlyNew: true, limit, sort: 'newest' }).products
+      }
       lookbookItems={(limit) => visibleLookbook().slice(0, limit)}
       resolveCollection={(id) => collectionById(id)}
       collectionProducts={(slug, limit) =>
-        queryProducts({ collectionSlug: slug, limit }).products.filter((p) => p.status === 'active')
+        queryProducts({ collectionSlug: slug, limit }).products.filter(
+          (p) => p.status === 'active'
+        )
       }
     />
   );

@@ -1,12 +1,30 @@
 import { z } from 'zod';
 
+export const imagePresentationSchema = z
+  .object({
+    fit: z.enum(['cover', 'contain']).default('cover'),
+    x: z.number().min(0).max(100).default(50),
+    y: z.number().min(0).max(100).default(50),
+    mobileX: z.number().min(0).max(100).default(50),
+    mobileY: z.number().min(0).max(100).default(50)
+  })
+  .default({});
+
+const sectionImageFields = {
+  imagePresentation: imagePresentationSchema,
+  mobileImageMediaId: z.number().int().positive().nullable().default(null)
+};
+
 /** ── Shared primitives ─────────────────────────────────────────── */
 export const slugSchema = z
   .string()
   .trim()
   .min(1)
   .max(120)
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase letters, digits and hyphens');
+  .regex(
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+    'Slug must be lowercase letters, digits and hyphens'
+  );
 
 export const priceSchema = z.number().int().min(0).max(100_000_000);
 
@@ -46,6 +64,7 @@ export const productInputSchema = z.object({
 
 /** ── Collections ───────────────────────────────────────────────── */
 export const collectionInputSchema = z.object({
+  imagePresentation: imagePresentationSchema,
   slug: slugSchema,
   nameEn: z.string().trim().min(1).max(120),
   nameAr: z.string().trim().min(1).max(120),
@@ -59,6 +78,7 @@ export const collectionInputSchema = z.object({
 
 /** ── Lookbook ──────────────────────────────────────────────────── */
 export const lookbookInputSchema = z.object({
+  imagePresentation: imagePresentationSchema,
   imageMediaId: z.number().int().positive(),
   titleEn: z.string().trim().max(120).nullable().default(null),
   titleAr: z.string().trim().max(120).nullable().default(null),
@@ -68,7 +88,10 @@ export const lookbookInputSchema = z.object({
     .string()
     .trim()
     .max(300)
-    .regex(/^\/[a-z]{2}\/|^https?:\/\//i, 'Must be an internal path or absolute URL')
+    .regex(
+      /^\/[a-z]{2}\/|^https?:\/\//i,
+      'Must be an internal path or absolute URL'
+    )
     .nullable()
     .default(null),
   isVisible: z.boolean().default(true),
@@ -78,6 +101,10 @@ export const lookbookInputSchema = z.object({
 /** ── Home sections (controlled block architecture) ─────────────── */
 export const homeSectionConfigSchemas = {
   hero: z.object({
+    ...sectionImageFields,
+    layout: z.enum(['overlay', 'split']).default('overlay'),
+    alignment: z.enum(['start', 'center', 'end']).default('center'),
+    overlay: z.number().min(0).max(80).default(40),
     imageMediaId: z.number().int().positive().nullable().default(null),
     headlineEn: z.string().trim().max(200).default(''),
     headlineAr: z.string().trim().max(200).default(''),
@@ -107,6 +134,7 @@ export const homeSectionConfigSchemas = {
     limit: z.number().int().min(1).max(8).default(4)
   }),
   brand_story: z.object({
+    imagePresentation: imagePresentationSchema,
     titleEn: z.string().trim().max(160).default(''),
     titleAr: z.string().trim().max(160).default(''),
     bodyEn: z.string().trim().max(2000).default(''),
@@ -114,6 +142,8 @@ export const homeSectionConfigSchemas = {
     imageMediaId: z.number().int().positive().nullable().default(null)
   }),
   promo_banner: z.object({
+    ...sectionImageFields,
+    overlay: z.number().min(0).max(80).default(50),
     imageMediaId: z.number().int().positive().nullable().default(null),
     headlineEn: z.string().trim().max(160).default(''),
     headlineAr: z.string().trim().max(160).default(''),
@@ -125,12 +155,17 @@ export const homeSectionConfigSchemas = {
   })
 } as const;
 
-export const HOME_SECTION_TYPES = Object.keys(homeSectionConfigSchemas) as Array<
-  keyof typeof homeSectionConfigSchemas
->;
+export const HOME_SECTION_TYPES = Object.keys(
+  homeSectionConfigSchemas
+) as Array<keyof typeof homeSectionConfigSchemas>;
 
 export const homeSectionInputSchema = z.object({
-  type: z.enum(HOME_SECTION_TYPES as [keyof typeof homeSectionConfigSchemas, ...Array<keyof typeof homeSectionConfigSchemas>]),
+  type: z.enum(
+    HOME_SECTION_TYPES as [
+      keyof typeof homeSectionConfigSchemas,
+      ...Array<keyof typeof homeSectionConfigSchemas>
+    ]
+  ),
   config: z.record(z.unknown()),
   isVisible: z.boolean().default(true),
   sortOrder: z.number().int().min(0).max(100000).default(0)
@@ -155,12 +190,18 @@ export const aboutPageInputSchema = z.object({
 });
 
 /** ── Settings ──────────────────────────────────────────────────── */
-const hexColor = z.string().trim().regex(/^#[0-9a-fA-F]{6}$/, 'Must be a hex color like #A98A5B');
+const hexColor = z
+  .string()
+  .trim()
+  .regex(/^#[0-9a-fA-F]{6}$/, 'Must be a hex color like #A98A5B');
 const optionalUrl = z
   .string()
   .trim()
   .max(300)
-  .refine((v) => v === '' || /^https?:\/\//i.test(v), 'Must be an http(s) URL or empty')
+  .refine(
+    (v) => v === '' || /^https?:\/\//i.test(v),
+    'Must be an http(s) URL or empty'
+  )
   .default('');
 
 export const settingsInputSchema = z.object({
@@ -176,7 +217,15 @@ export const settingsInputSchema = z.object({
   contact: z.object({
     phone: z.string().trim().max(30).default(''),
     whatsapp: z.string().trim().max(30).default(''),
-    email: z.string().trim().max(120).refine((v) => v === '' || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v), 'Invalid email').default(''),
+    email: z
+      .string()
+      .trim()
+      .max(120)
+      .refine(
+        (v) => v === '' || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v),
+        'Invalid email'
+      )
+      .default(''),
     addressEn: z.string().trim().max(300).default(''),
     addressAr: z.string().trim().max(300).default('')
   }),
@@ -199,7 +248,12 @@ export const settingsInputSchema = z.object({
   }),
   checkout: z.object({
     governorates: z
-      .array(z.object({ en: z.string().trim().min(1).max(60), ar: z.string().trim().min(1).max(60) }))
+      .array(
+        z.object({
+          en: z.string().trim().min(1).max(60),
+          ar: z.string().trim().min(1).max(60)
+        })
+      )
       .min(1)
       .max(60)
   })
@@ -210,11 +264,17 @@ export const telegramConfigInputSchema = z.object({
   botToken: z
     .string()
     .trim()
-    .refine((v) => v === '' || /^\d{8,12}:[A-Za-z0-9_-]{30,60}$/.test(v), 'Invalid bot token format'),
+    .refine(
+      (v) => v === '' || /^\d{8,12}:[A-Za-z0-9_-]{30,60}$/.test(v),
+      'Invalid bot token format'
+    ),
   chatId: z
     .string()
     .trim()
-    .refine((v) => v === '' || /^-?\d{5,15}$/.test(v), 'Chat ID must be numeric (e.g. 123456789 or -1001234567890)')
+    .refine(
+      (v) => v === '' || /^-?\d{5,15}$/.test(v),
+      'Chat ID must be numeric (e.g. 123456789 or -1001234567890)'
+    )
 });
 
 /** ── Orders ────────────────────────────────────────────────────── */
@@ -222,7 +282,9 @@ export const orderItemSchema = z.object({
   productId: z.number().int().positive(),
   quantity: z.number().int().min(1).max(50),
   variantSelections: z
-    .array(z.object({ variantId: z.string().min(1), optionId: z.string().min(1) }))
+    .array(
+      z.object({ variantId: z.string().min(1), optionId: z.string().min(1) })
+    )
     .max(5)
     .default([])
 });
@@ -232,7 +294,10 @@ export const orderInputSchema = z.object({
   phone: z
     .string()
     .trim()
-    .regex(/^(\+?2)?01[0-25]\d{8}$/, 'Invalid Egyptian phone number (e.g. 01096144345)'),
+    .regex(
+      /^(\+?2)?01[0-25]\d{8}$/,
+      'Invalid Egyptian phone number (e.g. 01096144345)'
+    ),
   governorate: z.string().trim().min(1).max(60),
   city: z.string().trim().min(1).max(80),
   addressDetails: z.string().trim().min(5).max(500),
@@ -252,7 +317,10 @@ export const passwordChangeSchema = z
       .string()
       .min(8, 'Minimum 8 characters')
       .max(200)
-      .refine((v) => /[a-zA-Z]/.test(v) && /\d/.test(v), 'Must contain letters and numbers'),
+      .refine(
+        (v) => /[a-zA-Z]/.test(v) && /\d/.test(v),
+        'Must contain letters and numbers'
+      ),
     confirmPassword: z.string()
   })
   .refine((v) => v.newPassword === v.confirmPassword, {
