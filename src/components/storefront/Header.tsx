@@ -2,10 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Link, usePathname, useRouter } from '@/i18n/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
 import { useCart, cartCount } from '@/lib/store/cart';
 import { useWishlist } from '@/lib/store/wishlist';
-import { MenuIcon, CloseIcon, SearchIcon, BagIcon, HeartIcon, ArrowIcon } from '@/components/ui/Icons';
+import {
+  MenuIcon,
+  CloseIcon,
+  SearchIcon,
+  BagIcon,
+  HeartIcon
+} from '@/components/ui/Icons';
+import SmartImage from '@/components/ui/SmartImage';
+import Modal from '@/components/ui/Modal';
 import SearchOverlay from './SearchOverlay';
 import type { Locale } from '@/i18n/routing';
 
@@ -17,16 +25,19 @@ export interface HeaderCollection {
 export default function Header({
   storeName,
   collections,
-  locale
+  locale,
+  logoMediaId,
+  currency
 }: {
   storeName: string;
   collections: HeaderCollection[];
   locale: Locale;
+  logoMediaId: number | null;
+  currency: { en: string; ar: string };
 }) {
   const t = useTranslations('nav');
   const tc = useTranslations('common');
   const pathname = usePathname();
-  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -48,20 +59,13 @@ export default function Header({
     setSearchOpen(false);
   }, [pathname]);
 
-  // Lock body scroll when an overlay is open
-  useEffect(() => {
-    document.body.style.overflow = menuOpen || searchOpen ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [menuOpen, searchOpen]);
-
   const otherLocale = locale === 'ar' ? 'en' : 'ar';
   // pathname from @/i18n/navigation is already locale-stripped; the Link
   // `locale` prop makes it render the same path under the other locale.
   const switchHref = pathname === '/' ? '/' : pathname;
 
-  const navLink = 'link-luxe text-[0.72rem] font-medium uppercase tracking-[0.16em] text-stone-deep';
+  const navLink =
+    'link-luxe text-[0.72rem] font-medium uppercase tracking-[0.16em] text-stone-deep';
   const navLinkAr = 'link-luxe text-sm font-medium text-stone-deep';
 
   return (
@@ -77,71 +81,102 @@ export default function Header({
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
           scrolled
             ? 'bg-porcelain/95 backdrop-blur-sm border-b border-line'
-            : 'bg-transparent border-b border-transparent'
+            : 'bg-porcelain border-b border-line'
         }`}
       >
-        <div className="mx-auto flex h-16 md:h-20 max-w-[1400px] items-center justify-between px-4 md:px-8">
+        <div className="store-header-inner">
           {/* Mobile menu button */}
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label={t('openMenu')}
-            className="p-2 -ms-2 lg:hidden"
+            className="icon-button header-menu"
           >
             <MenuIcon size={22} />
           </button>
 
           {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-8" aria-label={t('collections')}>
+          <nav className="header-navigation" aria-label={t('collections')}>
             <Link href="/" className={locale === 'ar' ? navLinkAr : navLink}>
               {t('home')}
             </Link>
-            {collections.slice(0, 3).map((c) => (
-              <Link key={c.slug} href={`/collections/${c.slug}`} className={locale === 'ar' ? navLinkAr : navLink}>
+            {collections.slice(0, 2).map((c) => (
+              <Link
+                key={c.slug}
+                href={`/collections/${c.slug}`}
+                className={locale === 'ar' ? navLinkAr : navLink}
+              >
                 {c.name}
               </Link>
             ))}
-            <Link href="/new-arrivals" className={locale === 'ar' ? navLinkAr : navLink}>
+            <Link
+              href="/new-arrivals"
+              className={locale === 'ar' ? navLinkAr : navLink}
+            >
               {t('newArrivals')}
             </Link>
-            <Link href="/lookbook" className={locale === 'ar' ? navLinkAr : navLink}>
+            <Link
+              href="/lookbook"
+              className={locale === 'ar' ? navLinkAr : navLink}
+            >
               {t('lookbook')}
             </Link>
           </nav>
 
           {/* Wordmark */}
-          <Link
-            href="/"
-            className="absolute left-1/2 -translate-x-1/2 text-center"
-            aria-label={storeName}
-          >
-            <span className="display-heading text-xl md:text-2xl tracking-[0.08em] uppercase whitespace-nowrap">
-              {storeName}
-            </span>
+          <Link href="/" className="store-wordmark" aria-label={storeName}>
+            {logoMediaId ? (
+              <span className="store-logo">
+                <SmartImage
+                  mediaId={logoMediaId}
+                  alt={storeName}
+                  sizes="180px"
+                  fit="contain"
+                />
+              </span>
+            ) : (
+              <span className="display-heading text-xl md:text-2xl uppercase">
+                {storeName}
+              </span>
+            )}
           </Link>
 
           {/* Actions */}
-          <div className="flex items-center gap-1 md:gap-2">
+          <div className="header-actions">
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
               aria-label={t('openSearch')}
-              className="p-2"
+              className="icon-button"
             >
               <SearchIcon size={20} />
             </button>
-            <Link href="/wishlist" aria-label={t('wishlist')} className="p-2 hidden sm:block relative">
+            <Link
+              href="/wishlist"
+              aria-label={t('wishlist')}
+              className="icon-button hidden sm:grid relative"
+            >
               <HeartIcon size={20} />
               {wishlist.length > 0 && (
-                <span className="absolute top-0.5 end-0.5 min-w-[16px] h-4 px-0.5 text-[10px] leading-4 text-center bg-accent text-accent-ink" aria-hidden="true">
+                <span
+                  className="absolute top-0.5 end-0.5 min-w-[16px] h-4 px-0.5 text-[10px] leading-4 text-center bg-accent text-accent-ink"
+                  aria-hidden="true"
+                >
                   {wishlist.length}
                 </span>
               )}
             </Link>
-            <Link href="/cart" aria-label={t('cart')} className="p-2 relative">
+            <Link
+              href="/cart"
+              aria-label={t('cart')}
+              className="icon-button relative"
+            >
               <BagIcon size={20} />
               {count > 0 && (
-                <span className="absolute top-0.5 end-0.5 min-w-[16px] h-4 px-0.5 text-[10px] leading-4 text-center bg-accent text-accent-ink" aria-hidden="true">
+                <span
+                  className="absolute top-0.5 end-0.5 min-w-[16px] h-4 px-0.5 text-[10px] leading-4 text-center bg-accent text-accent-ink"
+                  aria-hidden="true"
+                >
                   {count}
                 </span>
               )}
@@ -150,7 +185,7 @@ export default function Header({
               href={switchHref}
               locale={otherLocale}
               aria-label={tc('language')}
-              className="p-2 text-[0.7rem] font-medium tracking-widest uppercase"
+              className="icon-button text-[0.7rem] font-medium tracking-widest uppercase"
             >
               {otherLocale === 'ar' ? 'ع' : 'EN'}
             </Link>
@@ -160,16 +195,30 @@ export default function Header({
 
       {/* Mobile drawer */}
       {menuOpen && (
-        <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true" aria-label={t('openMenu')}>
-          <div className="absolute inset-0 bg-night/40" onClick={() => setMenuOpen(false)} />
-          <div className="absolute inset-y-0 start-0 w-[85%] max-w-sm bg-porcelain flex flex-col animate-[slideIn_.35s_var(--ease-luxe)]">
+        <Modal
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          label={t('openMenu')}
+          className="navigation-dialog"
+        >
+          <div className="flex flex-col min-h-full">
             <div className="flex items-center justify-between p-4 border-b border-line">
-              <span className="display-heading text-lg uppercase tracking-wider">{storeName}</span>
-              <button type="button" onClick={() => setMenuOpen(false)} aria-label={t('closeMenu')} className="p-2">
+              <span className="display-heading text-lg uppercase tracking-wider">
+                {storeName}
+              </span>
+              <button
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                aria-label={t('closeMenu')}
+                className="p-2"
+              >
                 <CloseIcon size={22} />
               </button>
             </div>
-            <nav className="flex-1 overflow-y-auto p-6 flex flex-col gap-6" aria-label={t('collections')}>
+            <nav
+              className="flex-1 overflow-y-auto p-6 flex flex-col gap-6"
+              aria-label={t('collections')}
+            >
               <Link href="/" className="display-heading text-2xl">
                 {t('home')}
               </Link>
@@ -177,7 +226,11 @@ export default function Header({
                 {t('collections')}
               </Link>
               {collections.map((c) => (
-                <Link key={c.slug} href={`/collections/${c.slug}`} className="text-lg text-stone-deep ps-4">
+                <Link
+                  key={c.slug}
+                  href={`/collections/${c.slug}`}
+                  className="text-lg text-stone-deep ps-4"
+                >
                   {c.name}
                 </Link>
               ))}
@@ -190,15 +243,22 @@ export default function Header({
               <Link href="/about" className="display-heading text-2xl">
                 {t('about')}
               </Link>
-              <Link href="/wishlist" className="display-heading text-2xl flex items-center gap-2">
+              <Link
+                href="/wishlist"
+                className="display-heading text-2xl flex items-center gap-2"
+              >
                 {t('wishlist')} <HeartIcon size={18} />
               </Link>
             </nav>
           </div>
-        </div>
+        </Modal>
       )}
 
-      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <SearchOverlay
+        currency={currency}
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+      />
 
       <style jsx>{`
         @keyframes slideIn {

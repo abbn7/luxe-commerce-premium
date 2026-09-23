@@ -27,11 +27,14 @@ export default async function CollectionHighlightSection({
 }) {
   const t = await getTranslations('home');
   const c = config as Config;
-  const collection = c.collectionId ? resolveCollection(c.collectionId) : undefined;
+  const collection = c.collectionId
+    ? resolveCollection(c.collectionId)
+    : undefined;
   if (!collection || !collection.is_visible) return null;
 
   const name = locale === 'ar' ? collection.name_ar : collection.name_en;
-  const description = locale === 'ar' ? collection.description_ar : collection.description_en;
+  const description =
+    locale === 'ar' ? collection.description_ar : collection.description_en;
   const products = collectionProducts(collection.slug, 4);
 
   if (c.layout === 'grid') {
@@ -40,7 +43,10 @@ export default async function CollectionHighlightSection({
         <div className="mx-auto max-w-[1400px] px-4 md:px-8">
           <Reveal className="text-center mb-12 md:mb-16">
             <h2 className="display-heading text-3xl md:text-5xl">{name}</h2>
-            <div className="mx-auto mt-6 h-px w-16 bg-accent" aria-hidden="true" />
+            <div
+              className="mx-auto mt-6 h-px w-16 bg-accent"
+              aria-hidden="true"
+            />
           </Reveal>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-14">
             {products.map((p, i) => (
@@ -61,7 +67,10 @@ export default async function CollectionHighlightSection({
             ))}
           </div>
           <Reveal className="text-center mt-14">
-            <Link href={`/collections/${collection.slug}`} className="btn-outline">
+            <Link
+              href={`/collections/${collection.slug}`}
+              className="btn-outline"
+            >
               {t('discoverCollection')}
             </Link>
           </Reveal>
@@ -78,6 +87,7 @@ export default async function CollectionHighlightSection({
           <div className="relative aspect-[4/5] bg-ivory overflow-hidden">
             <SmartImage
               mediaId={collection.image_media_id}
+              presentation={collection.image_presentation}
               alt={name}
               sizes="(max-width: 1024px) 100vw, 50vw"
             />
@@ -86,8 +96,14 @@ export default async function CollectionHighlightSection({
         <div>
           <Reveal delay={100}>
             <p className="eyebrow mb-4">{t('explore')}</p>
-            <h2 className="display-heading text-3xl md:text-5xl mb-6">{name}</h2>
-            {description && <p className="text-stone-deep leading-relaxed max-w-md mb-8">{description}</p>}
+            <h2 className="display-heading text-3xl md:text-5xl mb-6">
+              {name}
+            </h2>
+            {description && (
+              <p className="text-stone-deep leading-relaxed max-w-md mb-8">
+                {description}
+              </p>
+            )}
           </Reveal>
           <div className="grid grid-cols-2 gap-x-4 gap-y-8">
             {products.slice(0, 2).map((p, i) => (

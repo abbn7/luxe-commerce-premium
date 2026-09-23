@@ -8,8 +8,14 @@ export default async function StorefrontLoading() {
   const t = await getTranslations('common');
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 md:px-8 py-32 md:py-48 text-center">
-      <p className="eyebrow animate-pulse">{t('loading')}</p>
+    <div className="store-container py-16" role="status" aria-busy="true">
+      <div className="loading-editorial" aria-hidden="true">
+        <div />
+        <div />
+        <div />
+        <div />
+      </div>
+      <p className="eyebrow mt-8 text-center">{t('loading')}</p>
     </div>
   );
 }

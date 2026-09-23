@@ -1,5 +1,7 @@
 'use client';
 
+import MediaForm from './MediaForm';
+
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
@@ -58,13 +60,23 @@ export default function ProductForm({
 
   const [form, setForm] = useState<ProductFormInitial>(initial);
   const [priceText, setPriceText] = useState(toMajor(initial.price));
-  const [compareText, setCompareText] = useState(toMajor(initial.compareAtPrice));
-  const [stockText, setStockText] = useState(initial.stock === null ? '' : String(initial.stock));
+  const [compareText, setCompareText] = useState(
+    toMajor(initial.compareAtPrice)
+  );
+  const [stockText, setStockText] = useState(
+    initial.stock === null ? '' : String(initial.stock)
+  );
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    kind: 'ok' | 'err';
+    text: string;
+  } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  function set<K extends keyof ProductFormInitial>(key: K, value: ProductFormInitial[K]) {
+  function set<K extends keyof ProductFormInitial>(
+    key: K,
+    value: ProductFormInitial[K]
+  ) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
@@ -73,11 +85,19 @@ export default function ProductForm({
     if (form.variants.length >= 5) return;
     set('variants', [
       ...form.variants,
-      { id: uid(), labelEn: '', labelAr: '', options: [{ id: uid(), valueEn: '', valueAr: '' }] }
+      {
+        id: uid(),
+        labelEn: '',
+        labelAr: '',
+        options: [{ id: uid(), valueEn: '', valueAr: '' }]
+      }
     ]);
   }
 
-  function updateVariant(vi: number, patch: Partial<ProductFormInitial['variants'][number]>) {
+  function updateVariant(
+    vi: number,
+    patch: Partial<ProductFormInitial['variants'][number]>
+  ) {
     set(
       'variants',
       form.variants.map((v, i) => (i === vi ? { ...v, ...patch } : v))
@@ -85,19 +105,30 @@ export default function ProductForm({
   }
 
   function removeVariant(vi: number) {
-    set('variants', form.variants.filter((_, i) => i !== vi));
+    set(
+      'variants',
+      form.variants.filter((_, i) => i !== vi)
+    );
   }
 
   function addOption(vi: number) {
     const variant = form.variants[vi];
     if (variant.options.length >= 20) return;
-    updateVariant(vi, { options: [...variant.options, { id: uid(), valueEn: '', valueAr: '' }] });
+    updateVariant(vi, {
+      options: [...variant.options, { id: uid(), valueEn: '', valueAr: '' }]
+    });
   }
 
-  function updateOption(vi: number, oi: number, patch: Partial<{ valueEn: string; valueAr: string }>) {
+  function updateOption(
+    vi: number,
+    oi: number,
+    patch: Partial<{ valueEn: string; valueAr: string }>
+  ) {
     const variant = form.variants[vi];
     updateVariant(vi, {
-      options: variant.options.map((o, i) => (i === oi ? { ...o, ...patch } : o))
+      options: variant.options.map((o, i) =>
+        i === oi ? { ...o, ...patch } : o
+      )
     });
   }
 
@@ -113,7 +144,8 @@ export default function ProductForm({
     setFieldErrors({});
 
     const price = toMinor(priceText);
-    const compareAtPrice = compareText.trim() === '' ? null : toMinor(compareText);
+    const compareAtPrice =
+      compareText.trim() === '' ? null : toMinor(compareText);
     const stock = stockText.trim() === '' ? null : Number(stockText);
 
     if (!Number.isFinite(price)) {
@@ -133,7 +165,9 @@ export default function ProductForm({
     const variants = form.variants
       .map((v) => ({
         ...v,
-        options: v.options.filter((o) => o.valueEn.trim() !== '' || o.valueAr.trim() !== '')
+        options: v.options.filter(
+          (o) => o.valueEn.trim() !== '' || o.valueAr.trim() !== ''
+        )
       }))
       .filter((v) => v.labelEn.trim() !== '' || v.labelAr.trim() !== '');
 
@@ -162,7 +196,10 @@ export default function ProductForm({
         await api.put(`/api/admin/products/${form.id}`, payload);
         setNotice({ kind: 'ok', text: tCommon('updated') });
       } else {
-        const res = await api.post<{ id: number }>('/api/admin/products', payload);
+        const res = await api.post<{ id: number }>(
+          '/api/admin/products',
+          payload
+        );
         setForm((f) => ({ ...f, id: res.id }));
         setNotice({ kind: 'ok', text: tCommon('created') });
         router.replace(`/admin/products/${res.id}`);
@@ -201,7 +238,7 @@ export default function ProductForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
+    <MediaForm onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
       {/* Names + slug */}
       <div className="admin-card p-5 space-y-4">
         <div className="grid md:grid-cols-2 gap-4">
@@ -292,7 +329,11 @@ export default function ProductForm({
           </Field>
         </div>
         <div className="grid md:grid-cols-2 gap-4">
-          <Field label={t('stock')} hint={t('stockHint')} error={fieldErrors.stock}>
+          <Field
+            label={t('stock')}
+            hint={t('stockHint')}
+            error={fieldErrors.stock}
+          >
             <input
               className="admin-input"
               dir="ltr"
@@ -328,7 +369,11 @@ export default function ProductForm({
       <div className="admin-card p-5 space-y-4">
         <div className="flex items-center justify-between">
           <p className="admin-label !mb-0">{t('variants')}</p>
-          <button type="button" onClick={addVariant} className="admin-btn-secondary !py-1.5 !px-3 text-xs">
+          <button
+            type="button"
+            onClick={addVariant}
+            className="admin-btn-secondary !py-1.5 !px-3 text-xs"
+          >
             <PlusIcon size={14} />
             {t('addVariant')}
           </button>
@@ -342,7 +387,9 @@ export default function ProductForm({
                   dir="ltr"
                   placeholder={t('variantLabelEn')}
                   value={variant.labelEn}
-                  onChange={(e) => updateVariant(vi, { labelEn: e.target.value })}
+                  onChange={(e) =>
+                    updateVariant(vi, { labelEn: e.target.value })
+                  }
                   maxLength={40}
                 />
                 <input
@@ -350,7 +397,9 @@ export default function ProductForm({
                   dir="rtl"
                   placeholder={t('variantLabelAr')}
                   value={variant.labelAr}
-                  onChange={(e) => updateVariant(vi, { labelAr: e.target.value })}
+                  onChange={(e) =>
+                    updateVariant(vi, { labelAr: e.target.value })
+                  }
                   maxLength={40}
                 />
               </div>
@@ -371,7 +420,9 @@ export default function ProductForm({
                     dir="ltr"
                     placeholder={t('optionValueEn')}
                     value={option.valueEn}
-                    onChange={(e) => updateOption(vi, oi, { valueEn: e.target.value })}
+                    onChange={(e) =>
+                      updateOption(vi, oi, { valueEn: e.target.value })
+                    }
                     maxLength={60}
                   />
                   <input
@@ -379,7 +430,9 @@ export default function ProductForm({
                     dir="rtl"
                     placeholder={t('optionValueAr')}
                     value={option.valueAr}
-                    onChange={(e) => updateOption(vi, oi, { valueAr: e.target.value })}
+                    onChange={(e) =>
+                      updateOption(vi, oi, { valueAr: e.target.value })
+                    }
                     maxLength={60}
                   />
                   <button
@@ -392,7 +445,11 @@ export default function ProductForm({
                   </button>
                 </div>
               ))}
-              <button type="button" onClick={() => addOption(vi)} className="text-xs text-stone-deep hover:text-ink underline underline-offset-4">
+              <button
+                type="button"
+                onClick={() => addOption(vi)}
+                className="text-xs text-stone-deep hover:text-ink underline underline-offset-4"
+              >
                 + {t('addOption')}
               </button>
             </div>
@@ -407,7 +464,9 @@ export default function ProductForm({
             <select
               className="admin-input"
               value={form.status}
-              onChange={(e) => set('status', e.target.value as 'active' | 'draft')}
+              onChange={(e) =>
+                set('status', e.target.value as 'active' | 'draft')
+              }
             >
               <option value="active">{t('statusActive')}</option>
               <option value="draft">{t('statusDraft')}</option>
@@ -440,7 +499,10 @@ export default function ProductForm({
           ) : (
             <div className="grid sm:grid-cols-2 gap-2">
               {collections.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 text-sm border border-line px-3 py-2">
+                <label
+                  key={c.id}
+                  className="flex items-center gap-2 text-sm border border-line px-3 py-2"
+                >
                   <input
                     type="checkbox"
                     checked={form.collectionIds.includes(c.id)}
@@ -478,12 +540,17 @@ export default function ProductForm({
           {busy ? '…' : tCommon('save')}
         </button>
         {form.id ? (
-          <button type="button" onClick={handleDelete} className="admin-btn-danger" disabled={busy}>
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="admin-btn-danger"
+            disabled={busy}
+          >
             <TrashIcon size={14} />
             {tCommon('delete')}
           </button>
         ) : null}
       </div>
-    </form>
+    </MediaForm>
   );
 }

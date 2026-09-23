@@ -10,14 +10,18 @@ export const dynamic = 'force-dynamic';
 
 /** The admin dashboard must never be indexed, even if a URL leaks publicly. */
 export const metadata: Metadata = {
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: false }
 };
 
 /**
  * Admin shell — dark sidebar + content area. Every /admin/* page except
  * /admin/login renders inside this layout and is auth-guarded here.
  */
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({
+  children
+}: {
+  children: React.ReactNode;
+}) {
   const locale = (await getLocale()) as Locale;
 
   // The login page lives outside this guard via its own route group segment.
@@ -26,7 +30,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   const settings = getSettings();
-  const storeName = locale === 'ar' ? settings.branding.storeNameAr : settings.branding.storeNameEn;
+  const storeName =
+    locale === 'ar'
+      ? settings.branding.storeNameAr
+      : settings.branding.storeNameEn;
   const t = await getTranslations({ namespace: 'admin.nav' });
 
   return (
@@ -42,7 +49,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             >
               ☰
             </summary>
-            <div className="absolute end-0 mt-2 w-56 bg-night border border-line-dark p-3">
+            <div className="absolute end-0 mt-2 w-64 max-h-[80svh] overflow-y-auto bg-night border border-line-dark p-3">
               <AdminSidebar storeName={storeName} />
             </div>
           </details>
@@ -54,7 +61,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <AdminSidebar storeName={storeName} />
       </aside>
 
-      <main className="p-4 md:p-8 max-w-6xl w-full mx-auto">{children}</main>
+      <main className="min-w-0 p-4 md:p-8 max-w-6xl w-full mx-auto">
+        {children}
+      </main>
     </div>
   );
 }

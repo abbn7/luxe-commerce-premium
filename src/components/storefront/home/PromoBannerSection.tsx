@@ -1,70 +1,76 @@
 import { Link } from '@/i18n/navigation';
-import Reveal from '@/components/ui/Reveal';
 import SmartImage from '@/components/ui/SmartImage';
+import { ArrowIcon } from '@/components/ui/Icons';
+import { readPresentation } from '@/lib/media/presentation';
 import type { Locale } from '@/i18n/routing';
-
-interface Config {
-  imageMediaId?: number | null;
-  headlineEn?: string;
-  headlineAr?: string;
-  bodyEn?: string;
-  bodyAr?: string;
-  ctaLabelEn?: string;
-  ctaLabelAr?: string;
-  ctaHref?: string;
-}
 
 export default function PromoBannerSection({
   config,
-  locale
+  locale,
+  previewDevice
 }: {
   config: Record<string, unknown>;
   locale: Locale;
+  previewDevice?: 'desktop' | 'mobile';
 }) {
-  const c = config as Config;
-  const headline = locale === 'ar' ? c.headlineAr : c.headlineEn;
-  const body = locale === 'ar' ? c.bodyAr : c.bodyEn;
-  const ctaLabel = locale === 'ar' ? c.ctaLabelAr : c.ctaLabelEn;
-
-  if (!headline && !body && !c.imageMediaId) return null;
-
+  const text = (key: string) =>
+    typeof config[key] === 'string' ? (config[key] as string) : '';
+  const headline = text(locale === 'ar' ? 'headlineAr' : 'headlineEn');
+  const body = text(locale === 'ar' ? 'bodyAr' : 'bodyEn');
+  const cta = text(locale === 'ar' ? 'ctaLabelAr' : 'ctaLabelEn');
+  const mediaId =
+    typeof config.imageMediaId === 'number'
+      ? config.imageMediaId
+      : typeof config.mobileImageMediaId === 'number'
+        ? config.mobileImageMediaId
+        : null;
+  const shade =
+    typeof config.overlay === 'number'
+      ? Math.min(80, Math.max(0, config.overlay))
+      : 50;
+  if (!headline && !body && !mediaId) return null;
   return (
-    <section className="relative py-24 md:py-36 overflow-hidden">
-      {c.imageMediaId && (
-        <div className="absolute inset-0 bg-night">
-          <SmartImage mediaId={c.imageMediaId} alt="" sizes="100vw" imgClassName="object-cover opacity-80" />
-          <div className="absolute inset-0 bg-night/50" />
+    <section
+      className={`campaign-section ${mediaId ? 'campaign-with-image' : ''}`}
+      lang={locale}
+      dir={locale === 'ar' ? 'rtl' : 'ltr'}
+    >
+      {mediaId && (
+        <div className="absolute inset-0">
+          <SmartImage
+            mediaId={mediaId}
+            mobileMediaId={
+              typeof config.mobileImageMediaId === 'number'
+                ? config.mobileImageMediaId
+                : null
+            }
+            alt=""
+            sizes="100vw"
+            presentation={readPresentation(config.imagePresentation)}
+            previewDevice={previewDevice}
+          />
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: `rgba(18,17,16,${shade / 100})` }}
+          />
         </div>
       )}
-      <div
-        className={`relative mx-auto max-w-3xl px-4 md:px-8 text-center ${
-          c.imageMediaId ? 'text-ivory' : 'bg-ivory py-16 md:py-24'
-        }`}
-      >
-        <Reveal>
-          {headline && (
-            <h2 className={`display-heading text-3xl md:text-5xl mb-5 ${c.imageMediaId ? '' : ''}`}>
-              {headline}
-            </h2>
-          )}
-          {body && (
-            <p className={`leading-relaxed max-w-xl mx-auto ${c.imageMediaId ? 'text-ivory/80' : 'text-stone-deep'}`}>
-              {body}
-            </p>
-          )}
-          {ctaLabel && c.ctaHref && (
-            <Link
-              href={c.ctaHref}
-              className={`inline-flex items-center gap-3 mt-10 px-10 py-4 text-[0.72rem] uppercase tracking-[0.22em] border transition-all duration-500 ${
-                c.imageMediaId
-                  ? 'border-ivory/80 text-ivory hover:bg-ivory hover:text-night'
-                  : 'border-ink text-ink hover:bg-ink hover:text-porcelain'
-              }`}
-            >
-              {ctaLabel}
-            </Link>
-          )}
-        </Reveal>
+      <div className="campaign-copy">
+        {headline && (
+          <h2 className="display-heading section-title">{headline}</h2>
+        )}
+        {body && (
+          <p className="mt-5 leading-relaxed whitespace-pre-line">{body}</p>
+        )}
+        {cta && text('ctaHref') && (
+          <Link
+            href={text('ctaHref')}
+            className={`${mediaId ? 'btn-light' : 'btn-luxe'} mt-8`}
+          >
+            {cta}
+            <ArrowIcon size={18} />
+          </Link>
+        )}
       </div>
     </section>
   );

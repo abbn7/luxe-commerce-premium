@@ -6,16 +6,27 @@ import { visibleCollections } from '@/lib/db/repos/collections';
 import { visiblePolicies } from '@/lib/db/repos/content';
 import type { Locale } from '@/i18n/routing';
 
-export default async function StorefrontLayout({ children }: { children: React.ReactNode }) {
+export default async function StorefrontLayout({
+  children
+}: {
+  children: React.ReactNode;
+}) {
   const locale = (await getLocale()) as Locale;
   const settings = getSettings();
   const collections = visibleCollections();
   const policies = visiblePolicies();
 
-  const storeName = locale === 'ar' ? settings.branding.storeNameAr : settings.branding.storeNameEn;
+  const storeName =
+    locale === 'ar'
+      ? settings.branding.storeNameAr
+      : settings.branding.storeNameEn;
 
   const footerData: FooterData = {
     storeName,
+    tagline:
+      locale === 'ar'
+        ? settings.branding.taglineAr
+        : settings.branding.taglineEn,
     logoMediaId: settings.branding.logoMediaId,
     social: Object.entries(settings.social)
       .filter(([, url]) => url)
@@ -24,7 +35,10 @@ export default async function StorefrontLayout({ children }: { children: React.R
       phone: settings.contact.phone,
       whatsapp: settings.contact.whatsapp,
       email: settings.contact.email,
-      address: locale === 'ar' ? settings.contact.addressAr : settings.contact.addressEn
+      address:
+        locale === 'ar'
+          ? settings.contact.addressAr
+          : settings.contact.addressEn
     },
     policies: policies.map((p) => ({
       key: p.key,
@@ -36,6 +50,11 @@ export default async function StorefrontLayout({ children }: { children: React.R
     <>
       <Header
         storeName={storeName}
+        logoMediaId={settings.branding.logoMediaId}
+        currency={{
+          en: settings.locale.currencySymbolEn,
+          ar: settings.locale.currencySymbolAr
+        }}
         collections={collections.map((c) => ({
           slug: c.slug,
           name: locale === 'ar' ? c.name_ar : c.name_en

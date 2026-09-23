@@ -1,5 +1,7 @@
 'use client';
 
+import MediaForm from './MediaForm';
+
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
@@ -17,15 +19,23 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
 
   const [form, setForm] = useState<Settings>(initial);
   const [flatFee, setFlatFee] = useState(toMajor(initial.shipping.flatFee));
-  const [freeOver, setFreeOver] = useState(toMajor(initial.shipping.freeOverThreshold));
+  const [freeOver, setFreeOver] = useState(
+    toMajor(initial.shipping.freeOverThreshold)
+  );
   const [governoratesText, setGovernoratesText] = useState(
     initial.checkout.governorates.map((g) => `${g.en} | ${g.ar}`).join('\n')
   );
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    kind: 'ok' | 'err';
+    text: string;
+  } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  function setGroup<K extends keyof Settings>(group: K, patch: Partial<Settings[K]>) {
+  function setGroup<K extends keyof Settings>(
+    group: K,
+    patch: Partial<Settings[K]>
+  ) {
     setForm((f) => ({ ...f, [group]: { ...f[group], ...patch } }));
   }
 
@@ -82,7 +92,7 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
+    <MediaForm onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
       {/* Branding */}
       <div className="admin-card p-5 space-y-4">
         <h2 className="text-sm font-medium">{t('title')}</h2>
@@ -92,7 +102,9 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
               className="admin-input"
               dir="ltr"
               value={form.branding.storeNameEn}
-              onChange={(e) => setGroup('branding', { storeNameEn: e.target.value })}
+              onChange={(e) =>
+                setGroup('branding', { storeNameEn: e.target.value })
+              }
               required
               maxLength={80}
             />
@@ -102,7 +114,9 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
               className="admin-input"
               dir="rtl"
               value={form.branding.storeNameAr}
-              onChange={(e) => setGroup('branding', { storeNameAr: e.target.value })}
+              onChange={(e) =>
+                setGroup('branding', { storeNameAr: e.target.value })
+              }
               required
               maxLength={80}
             />
@@ -112,7 +126,9 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
               className="admin-input"
               dir="ltr"
               value={form.branding.taglineEn}
-              onChange={(e) => setGroup('branding', { taglineEn: e.target.value })}
+              onChange={(e) =>
+                setGroup('branding', { taglineEn: e.target.value })
+              }
               maxLength={200}
             />
           </Field>
@@ -121,7 +137,9 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
               className="admin-input"
               dir="rtl"
               value={form.branding.taglineAr}
-              onChange={(e) => setGroup('branding', { taglineAr: e.target.value })}
+              onChange={(e) =>
+                setGroup('branding', { taglineAr: e.target.value })
+              }
               maxLength={200}
             />
           </Field>
@@ -130,6 +148,7 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
           <div className="space-y-1">
             <SingleImageInput
               label={t('logo')}
+              preset="logo"
               mediaId={form.branding.logoMediaId}
               onChange={(id) => setGroup('branding', { logoMediaId: id })}
               aspect="w-28 h-16"
@@ -139,6 +158,7 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
           <div className="space-y-1">
             <SingleImageInput
               label={t('favicon')}
+              preset="favicon"
               mediaId={form.branding.faviconMediaId}
               onChange={(id) => setGroup('branding', { faviconMediaId: id })}
             />
@@ -151,14 +171,18 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
               type="color"
               aria-label={t('accentColor')}
               value={form.theme.accentColor}
-              onChange={(e) => setGroup('theme', { accentColor: e.target.value })}
+              onChange={(e) =>
+                setGroup('theme', { accentColor: e.target.value })
+              }
               className="w-12 h-10 border border-line bg-porcelain cursor-pointer"
             />
             <input
               className="admin-input flex-1"
               dir="ltr"
               value={form.theme.accentColor}
-              onChange={(e) => setGroup('theme', { accentColor: e.target.value })}
+              onChange={(e) =>
+                setGroup('theme', { accentColor: e.target.value })
+              }
               pattern="#[0-9a-fA-F]{6}"
               maxLength={7}
             />
@@ -184,7 +208,9 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
               className="admin-input"
               dir="ltr"
               value={form.contact.whatsapp}
-              onChange={(e) => setGroup('contact', { whatsapp: e.target.value })}
+              onChange={(e) =>
+                setGroup('contact', { whatsapp: e.target.value })
+              }
               maxLength={30}
             />
           </Field>
@@ -205,7 +231,9 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
               className="admin-input"
               dir="ltr"
               value={form.contact.addressEn}
-              onChange={(e) => setGroup('contact', { addressEn: e.target.value })}
+              onChange={(e) =>
+                setGroup('contact', { addressEn: e.target.value })
+              }
               maxLength={300}
             />
           </Field>
@@ -214,7 +242,9 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
               className="admin-input"
               dir="rtl"
               value={form.contact.addressAr}
-              onChange={(e) => setGroup('contact', { addressAr: e.target.value })}
+              onChange={(e) =>
+                setGroup('contact', { addressAr: e.target.value })
+              }
               maxLength={300}
             />
           </Field>
@@ -225,19 +255,23 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
       <div className="admin-card p-5 space-y-4">
         <h2 className="text-sm font-medium">{t('social')}</h2>
         <div className="grid md:grid-cols-2 gap-4">
-          {(['instagram', 'facebook', 'tiktok', 'x', 'youtube'] as const).map((key) => (
-            <Field key={key} label={t(key)} error={fieldErrors[key]}>
-              <input
-                className="admin-input"
-                dir="ltr"
-                type="url"
-                placeholder="https://"
-                value={form.social[key]}
-                onChange={(e) => setGroup('social', { [key]: e.target.value })}
-                maxLength={300}
-              />
-            </Field>
-          ))}
+          {(['instagram', 'facebook', 'tiktok', 'x', 'youtube'] as const).map(
+            (key) => (
+              <Field key={key} label={t(key)} error={fieldErrors[key]}>
+                <input
+                  className="admin-input"
+                  dir="ltr"
+                  type="url"
+                  placeholder="https://"
+                  value={form.social[key]}
+                  onChange={(e) =>
+                    setGroup('social', { [key]: e.target.value })
+                  }
+                  maxLength={300}
+                />
+              </Field>
+            )
+          )}
         </div>
       </div>
 
@@ -249,7 +283,11 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
             <select
               className="admin-input"
               value={form.locale.defaultLocale}
-              onChange={(e) => setGroup('locale', { defaultLocale: e.target.value as 'en' | 'ar' })}
+              onChange={(e) =>
+                setGroup('locale', {
+                  defaultLocale: e.target.value as 'en' | 'ar'
+                })
+              }
             >
               <option value="en">English</option>
               <option value="ar">العربية</option>
@@ -260,7 +298,9 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
               className="admin-input"
               dir="ltr"
               value={form.locale.currencyCode}
-              onChange={(e) => setGroup('locale', { currencyCode: e.target.value })}
+              onChange={(e) =>
+                setGroup('locale', { currencyCode: e.target.value })
+              }
               required
               maxLength={10}
             />
@@ -270,7 +310,9 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
               className="admin-input"
               dir="ltr"
               value={form.locale.currencySymbolEn}
-              onChange={(e) => setGroup('locale', { currencySymbolEn: e.target.value })}
+              onChange={(e) =>
+                setGroup('locale', { currencySymbolEn: e.target.value })
+              }
               required
               maxLength={10}
             />
@@ -280,7 +322,9 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
               className="admin-input"
               dir="rtl"
               value={form.locale.currencySymbolAr}
-              onChange={(e) => setGroup('locale', { currencySymbolAr: e.target.value })}
+              onChange={(e) =>
+                setGroup('locale', { currencySymbolAr: e.target.value })
+              }
               required
               maxLength={10}
             />
@@ -301,7 +345,10 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
               onChange={(e) => setFlatFee(e.target.value)}
             />
           </Field>
-          <Field label={t('freeOverThreshold')} hint={t('freeOverThresholdHint')}>
+          <Field
+            label={t('freeOverThreshold')}
+            hint={t('freeOverThresholdHint')}
+          >
             <input
               className="admin-input"
               dir="ltr"
@@ -311,7 +358,11 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
             />
           </Field>
         </div>
-        <Field label={t('governorates')} hint={t('governoratesHint')} error={fieldErrors.checkout}>
+        <Field
+          label={t('governorates')}
+          hint={t('governoratesHint')}
+          error={fieldErrors.checkout}
+        >
           <textarea
             className="admin-input min-h-48 font-mono text-xs"
             dir="ltr"
@@ -322,7 +373,10 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
       </div>
 
       {notice ? (
-        <p role="status" className={`text-sm ${notice.kind === 'ok' ? 'text-[#2f6b4f]' : 'text-[#8c2f2f]'}`}>
+        <p
+          role="status"
+          className={`text-sm ${notice.kind === 'ok' ? 'text-[#2f6b4f]' : 'text-[#8c2f2f]'}`}
+        >
           {notice.text}
         </p>
       ) : null}
@@ -332,6 +386,6 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
         </button>
         <p className="text-xs text-stone">{t('storefrontPreview')}</p>
       </div>
-    </form>
+    </MediaForm>
   );
 }

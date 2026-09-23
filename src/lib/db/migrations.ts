@@ -168,6 +168,10 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
-`,
+`
   },
+  {
+    name: '002_image_presentation.sql',
+    sql: "ALTER TABLE collections ADD COLUMN image_presentation TEXT NOT NULL DEFAULT '{}';\nALTER TABLE lookbook_items ADD COLUMN image_presentation TEXT NOT NULL DEFAULT '{}';\n"
+  }
 ];

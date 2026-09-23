@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { SearchIcon, CloseIcon, ArrowIcon } from '@/components/ui/Icons';
+import Modal from '@/components/ui/Modal';
 import SmartImage from '@/components/ui/SmartImage';
 import { formatPrice } from '@/lib/format';
 import type { Locale } from '@/i18n/routing';
@@ -18,9 +19,11 @@ interface SearchResult {
 
 export default function SearchOverlay({
   open,
-  onClose
+  onClose,
+  currency
 }: {
   open: boolean;
+  currency: { en: string; ar: string };
   onClose: () => void;
 }) {
   const t = useTranslations('search');
@@ -28,7 +31,9 @@ export default function SearchOverlay({
   const locale = useLocale() as Locale;
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [state, setState] = useState<'idle' | 'searching' | 'done'>('idle');
+  const [state, setState] = useState<'idle' | 'searching' | 'done' | 'error'>(
+    'idle'
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -51,6 +56,8 @@ export default function SearchOverlay({
   }, [open, onClose]);
 
   useEffect(() => {
+    abortRef.current?.abort();
+    if (!open) return;
     const q = query.trim();
     if (q.length < 2) {
       setState('idle');
@@ -64,34 +71,51 @@ export default function SearchOverlay({
       const controller = new AbortController();
       abortRef.current = controller;
       try {
-        const res = await fetch(`/api/products?q=${encodeURIComponent(q)}&limit=8`, {
-          signal: controller.signal
-        });
+        const res = await fetch(
+          `/api/products?q=${encodeURIComponent(q)}&limit=8`,
+          {
+            signal: controller.signal
+          }
+        );
+        if (!res.ok) throw new Error();
         const data = await res.json();
+        if (controller.signal.aborted) return;
         setResults(
           (data.products as Array<Record<string, unknown>>).map((p) => ({
             id: p.id as number,
             slug: p.slug as string,
             name: (locale === 'ar' ? p.name_ar : p.name_en) as string,
             price: p.price as number,
-            imageId: p.image_ids ? (JSON.parse(p.image_ids as string)[0] ?? null) : null
+            imageId: p.image_ids
+              ? (JSON.parse(p.image_ids as string)[0] ?? null)
+              : null
           }))
         );
         setState('done');
       } catch {
-        if (!controller.signal.aborted) setState('done');
+        if (!controller.signal.aborted) {
+          setResults([]);
+          setState('error');
+        }
       }
     }, 250);
 
-    return () => clearTimeout(timer);
-  }, [query, locale]);
+    return () => {
+      clearTimeout(timer);
+      abortRef.current?.abort();
+    };
+  }, [query, locale, open]);
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-label={tNav('search')}>
-      <div className="absolute inset-0 bg-night/50" onClick={onClose} />
-      <div className="absolute inset-x-0 top-0 bg-porcelain shadow-[0_20px_60px_rgba(0,0,0,0.15)] max-h-[85vh] overflow-y-auto">
+    <Modal
+      open={open}
+      onClose={onClose}
+      label={tNav('search')}
+      className="search-dialog"
+    >
+      <div className="bg-porcelain">
         <div className="mx-auto max-w-3xl px-4 md:px-8 py-6 md:py-10">
           <div className="flex items-center gap-4 border-b border-line pb-4">
             <SearchIcon size={22} className="text-stone shrink-0" />
@@ -102,25 +126,45 @@ export default function SearchOverlay({
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t('placeholder')}
               aria-label={t('placeholder')}
-              className="flex-1 bg-transparent text-lg md:text-xl outline-none placeholder:text-stone"
+              className="min-w-0 flex-1 bg-transparent text-lg md:text-xl outline-none placeholder:text-stone"
             />
-            <button type="button" onClick={onClose} aria-label={tNav('closeMenu')} className="p-2">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={tNav('closeMenu')}
+              className="p-2"
+            >
               <CloseIcon size={22} />
             </button>
           </div>
 
-          <div className="py-6">
+          <div className="py-6" aria-live="polite">
+            {state === 'error' && (
+              <p role="alert" className="py-8 text-center">
+                {t('error')}
+              </p>
+            )}
             {state === 'idle' && query.trim().length < 2 && (
-              <p className="text-sm text-stone text-center py-8">{t('minChars')}</p>
+              <p className="text-sm text-stone text-center py-8">
+                {t('minChars')}
+              </p>
             )}
             {state === 'searching' && (
-              <p className="text-sm text-stone text-center py-8">{t('searching')}</p>
+              <p className="text-sm text-stone text-center py-8">
+                {t('searching')}
+              </p>
             )}
             {state === 'done' && results.length === 0 && (
               <div className="text-center py-10">
-                <p className="display-heading text-2xl mb-2">{t('noResults')}</p>
+                <p className="display-heading text-2xl mb-2">
+                  {t('noResults')}
+                </p>
                 <p className="text-sm text-stone">{t('noResultsBody')}</p>
-                <Link href="/collections" onClick={onClose} className="btn-outline mt-6">
+                <Link
+                  href="/collections"
+                  onClick={onClose}
+                  className="btn-outline mt-6"
+                >
                   {t('exploreCollections')}
                 </Link>
               </div>
@@ -135,15 +179,29 @@ export default function SearchOverlay({
                       className="flex items-center gap-4 py-4 group"
                     >
                       <div className="relative w-16 h-20 shrink-0 bg-ivory overflow-hidden">
-                        <SmartImage mediaId={r.imageId} alt={r.name} sizes="64px" />
+                        <SmartImage
+                          mediaId={r.imageId}
+                          alt={r.name}
+                          sizes="64px"
+                        />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate group-hover:text-accent transition-colors">{r.name}</p>
+                        <p className="font-medium truncate group-hover:text-accent transition-colors">
+                          {r.name}
+                        </p>
                         <p className="text-sm text-stone mt-1">
-                          {formatPrice(r.price, locale, 'EGP', 'ج.م')}
+                          {formatPrice(
+                            r.price,
+                            locale,
+                            currency.en,
+                            currency.ar
+                          )}
                         </p>
                       </div>
-                      <ArrowIcon size={18} className="text-stone group-hover:text-ink transition-colors" />
+                      <ArrowIcon
+                        size={18}
+                        className="text-stone group-hover:text-ink transition-colors"
+                      />
                     </Link>
                   </li>
                 ))}
@@ -152,6 +210,6 @@ export default function SearchOverlay({
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

@@ -1,3 +1,4 @@
+import { readPresentation } from '@/lib/media/presentation';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { allLookbookForAdmin } from '@/lib/db/repos/content';
@@ -25,6 +26,7 @@ export default async function EditLookbookItemPage({ params }: Props) {
         initial={{
           id: item.id,
           imageMediaId: item.image_media_id,
+          imagePresentation: readPresentation(item.image_presentation),
           titleEn: item.title_en ?? '',
           titleAr: item.title_ar ?? '',
           subtitleEn: item.subtitle_en ?? '',

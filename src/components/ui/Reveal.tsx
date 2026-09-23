@@ -21,7 +21,9 @@ export default function Reveal({
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || !window.IntersectionObserver) return;
+    if (el.getBoundingClientRect().top < window.innerHeight) return;
+    el.classList.add('reveal-pending');
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {

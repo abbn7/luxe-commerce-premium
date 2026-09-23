@@ -8,7 +8,7 @@ import BrandStorySection from './BrandStorySection';
 import PromoBannerSection from './PromoBannerSection';
 import type { Locale } from '@/i18n/routing';
 import type { ProductRow } from '@/lib/db/repos/products';
-import type { LookbookRow, HomeSectionRow } from '@/lib/db/repos/content';
+import type { LookbookRow } from '@/lib/db/repos/content';
 import type { CollectionRow } from '@/lib/db/repos/collections';
 
 export interface SectionProps {
@@ -37,10 +37,18 @@ export default async function HomeSectionRenderer(props: RendererProps) {
 
   return (
     <>
-      {props.sections.map((section) => {
+      {props.sections.map((section, index) => {
         switch (section.type) {
           case 'hero':
-            return <HeroSection key={section.id} config={section.config} locale={props.locale} />;
+            return (
+              <HeroSection
+                key={section.id}
+                config={section.config}
+                locale={props.locale}
+                priority={index === 0}
+                headingLevel={index === 0 ? 1 : 2}
+              />
+            );
           case 'featured_products':
             return (
               <FeaturedProductsSection
@@ -85,9 +93,21 @@ export default async function HomeSectionRenderer(props: RendererProps) {
               />
             );
           case 'brand_story':
-            return <BrandStorySection key={section.id} config={section.config} locale={props.locale} />;
+            return (
+              <BrandStorySection
+                key={section.id}
+                config={section.config}
+                locale={props.locale}
+              />
+            );
           case 'promo_banner':
-            return <PromoBannerSection key={section.id} config={section.config} locale={props.locale} />;
+            return (
+              <PromoBannerSection
+                key={section.id}
+                config={section.config}
+                locale={props.locale}
+              />
+            );
           default:
             return null;
         }

@@ -9,6 +9,7 @@ export interface CollectionRow {
   description_en: string;
   description_ar: string;
   image_media_id: number | null;
+  image_presentation: string;
   is_visible: number;
   sort_order: number;
   created_at: string;
@@ -16,16 +17,21 @@ export interface CollectionRow {
 }
 
 export function collectionBySlug(slug: string): CollectionRow | undefined {
-  return getDb().prepare('SELECT * FROM collections WHERE slug = ?').get(slug) as CollectionRow | undefined;
+  return getDb()
+    .prepare('SELECT * FROM collections WHERE slug = ?')
+    .get(slug) as CollectionRow | undefined;
 }
 
 export function collectionById(id: number): CollectionRow | undefined {
-  return getDb().prepare('SELECT * FROM collections WHERE id = ?').get(id) as CollectionRow | undefined;
+  return getDb().prepare('SELECT * FROM collections WHERE id = ?').get(id) as
+    CollectionRow | undefined;
 }
 
 export function visibleCollections(): CollectionRow[] {
   return getDb()
-    .prepare('SELECT * FROM collections WHERE is_visible = 1 ORDER BY sort_order ASC, id ASC')
+    .prepare(
+      'SELECT * FROM collections WHERE is_visible = 1 ORDER BY sort_order ASC, id ASC'
+    )
     .all() as CollectionRow[];
 }
 
@@ -41,8 +47,8 @@ export function createCollection(input: CollectionInput): number {
     const info = db
       .prepare(
         `INSERT INTO collections (slug, name_en, name_ar, description_en, description_ar,
-           image_media_id, is_visible, sort_order)
-         VALUES (@slug, @nameEn, @nameAr, @descriptionEn, @descriptionAr, @imageMediaId, @isVisible, @sortOrder)`
+           image_media_id, image_presentation, is_visible, sort_order)
+         VALUES (@slug, @nameEn, @nameAr, @descriptionEn, @descriptionAr, @imageMediaId, @imagePresentation, @isVisible, @sortOrder)`
       )
       .run({
         slug: input.slug,
@@ -51,6 +57,7 @@ export function createCollection(input: CollectionInput): number {
         descriptionEn: input.descriptionEn,
         descriptionAr: input.descriptionAr,
         imageMediaId: input.imageMediaId,
+        imagePresentation: JSON.stringify(input.imagePresentation),
         isVisible: input.isVisible ? 1 : 0,
         sortOrder: input.sortOrder
       });
@@ -68,7 +75,7 @@ export function updateCollection(id: number, input: CollectionInput): boolean {
       .prepare(
         `UPDATE collections SET slug = @slug, name_en = @nameEn, name_ar = @nameAr,
            description_en = @descriptionEn, description_ar = @descriptionAr,
-           image_media_id = @imageMediaId, is_visible = @isVisible, sort_order = @sortOrder,
+           image_media_id = @imageMediaId, image_presentation = @imagePresentation, is_visible = @isVisible, sort_order = @sortOrder,
            updated_at = datetime('now')
          WHERE id = @id`
       )
@@ -80,6 +87,7 @@ export function updateCollection(id: number, input: CollectionInput): boolean {
         descriptionEn: input.descriptionEn,
         descriptionAr: input.descriptionAr,
         imageMediaId: input.imageMediaId,
+        imagePresentation: JSON.stringify(input.imagePresentation),
         isVisible: input.isVisible ? 1 : 0,
         sortOrder: input.sortOrder
       });
@@ -97,7 +105,9 @@ export function deleteCollection(id: number): boolean {
 export function collectionProductIds(collectionId: number): number[] {
   return (
     getDb()
-      .prepare('SELECT product_id FROM collection_products WHERE collection_id = ? ORDER BY product_id')
+      .prepare(
+        'SELECT product_id FROM collection_products WHERE collection_id = ? ORDER BY product_id'
+      )
       .all(collectionId) as { product_id: number }[]
   ).map((r) => r.product_id);
 }
@@ -119,7 +129,9 @@ function setCollectionProducts(
   collectionId: number,
   productIds: number[]
 ): void {
-  db.prepare('DELETE FROM collection_products WHERE collection_id = ?').run(collectionId);
+  db.prepare('DELETE FROM collection_products WHERE collection_id = ?').run(
+    collectionId
+  );
   const insert = db.prepare(
     'INSERT OR IGNORE INTO collection_products (collection_id, product_id) VALUES (?, ?)'
   );

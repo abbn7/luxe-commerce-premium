@@ -29,26 +29,41 @@ export default function ProductCard({
 }) {
   const t = useTranslations('product');
   const locale = useLocale() as Locale;
-  const wishlisted = useWishlist((s) => s.items.some((i) => i.productId === product.id));
+  const wishlisted = useWishlist((s) =>
+    s.items.some((i) => i.productId === product.id)
+  );
   const toggleWishlist = useWishlist((s) => s.toggle);
 
   const cover = product.imageIds[0] ?? null;
   const hover = product.imageIds[1] ?? null;
 
   return (
-    <article className="group">
+    <article className="group product-card">
       <div className="relative aspect-[3/4] bg-ivory overflow-hidden">
-        <Link href={`/product/${product.slug}`} aria-label={product.name} className="absolute inset-0 z-10" />
+        <Link
+          href={`/product/${product.slug}`}
+          aria-label={product.name}
+          className="absolute inset-0 z-10"
+        />
 
         {/* Cover image with subtle hover scale */}
         <div className="absolute inset-0 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]">
-          <SmartImage mediaId={cover} alt={product.name} sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" priority={priority} />
+          <SmartImage
+            mediaId={cover}
+            alt={product.name}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            priority={priority}
+          />
         </div>
 
         {/* Second image cross-fade */}
         {hover && (
           <div className="absolute inset-0 opacity-0 transition-opacity duration-700 group-hover:opacity-100">
-            <SmartImage mediaId={hover} alt={product.name} sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
+            <SmartImage
+              mediaId={hover}
+              alt={product.name}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
           </div>
         )}
 
@@ -81,7 +96,7 @@ export default function ProductCard({
           }
           aria-label={wishlisted ? t('removeFromWishlist') : t('addToWishlist')}
           aria-pressed={wishlisted}
-          className={`absolute top-3 end-3 z-20 p-2 rounded-full transition-all duration-300 ${
+          className={`product-wishlist absolute top-3 end-3 z-20 p-2 rounded-full transition-all duration-300 ${
             wishlisted
               ? 'text-accent opacity-100'
               : 'text-ink/60 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-accent'
@@ -93,7 +108,10 @@ export default function ProductCard({
 
       <div className="pt-4 pb-2 text-center">
         <h3 className="font-medium text-sm leading-snug">
-          <Link href={`/product/${product.slug}`} className="hover:text-accent transition-colors">
+          <Link
+            href={`/product/${product.slug}`}
+            className="hover:text-accent transition-colors"
+          >
             {product.name}
           </Link>
         </h3>
@@ -101,7 +119,12 @@ export default function ProductCard({
           {formatPrice(product.price, locale, currency.en, currency.ar)}
           {product.compareAtPrice && product.compareAtPrice > product.price && (
             <span className="ms-2 text-stone line-through text-xs">
-              {formatPrice(product.compareAtPrice, locale, currency.en, currency.ar)}
+              {formatPrice(
+                product.compareAtPrice,
+                locale,
+                currency.en,
+                currency.ar
+              )}
             </span>
           )}
         </p>
