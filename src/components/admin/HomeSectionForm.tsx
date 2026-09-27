@@ -41,6 +41,15 @@ const TYPE_LABEL_KEYS: Record<SectionType, string> = {
   brand_story: 'typeBrandStory',
   promo_banner: 'typePromoBanner'
 };
+const TYPE_PURPOSE_KEYS: Record<SectionType, string> = {
+  hero: 'purposeHero',
+  featured_products: 'purposeFeatured',
+  collection_highlight: 'purposeCollectionHighlight',
+  new_arrivals: 'purposeNewArrivals',
+  lookbook_preview: 'purposeLookbookPreview',
+  brand_story: 'purposeBrandStory',
+  promo_banner: 'purposePromoBanner'
+};
 
 const DEFAULT_CONFIGS: Record<SectionType, Record<string, unknown>> = {
   hero: {
@@ -603,9 +612,18 @@ export default function HomeSectionForm({
 
   return (
     <MediaForm onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
+      <div className="admin-editor-intro">
+        <p className="eyebrow">{t('editorEyebrow')}</p>
+        <p className="display-heading text-2xl mt-2">
+          {t(TYPE_LABEL_KEYS[type])}
+        </p>
+        <p className="text-sm text-stone-deep leading-relaxed mt-2">
+          {t(TYPE_PURPOSE_KEYS[type])}
+        </p>
+      </div>
       {/* Type (fixed when editing) */}
       <div className="admin-card p-5 space-y-4">
-        <Field label={t('type')}>
+        <Field label={t('type')} hint={t('typeHint')}>
           <select
             className="admin-input"
             value={type}
@@ -620,14 +638,17 @@ export default function HomeSectionForm({
           </select>
         </Field>
         <div className="grid md:grid-cols-2 gap-4">
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={isVisible}
-              onChange={(e) => setIsVisible(e.target.checked)}
-            />
-            {t('visible')}
-          </label>
+          <div>
+            <label className="flex items-center gap-2 text-sm min-h-11">
+              <input
+                type="checkbox"
+                checked={isVisible}
+                onChange={(e) => setIsVisible(e.target.checked)}
+              />
+              {t('visible')}
+            </label>
+            <p className="text-xs text-stone-deep">{t('visibilityHint')}</p>
+          </div>
           <Field label={t('sortOrder')} hint={t('sortHint')}>
             <input
               className="admin-input"
@@ -640,10 +661,22 @@ export default function HomeSectionForm({
         </div>
       </div>
 
-      {renderConfig()}
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-sm font-medium">{t('contentHeading')}</h2>
+          <p className="text-xs text-stone-deep mt-1">{t('contentHint')}</p>
+        </div>
+        {renderConfig()}
+      </div>
 
       {['hero', 'brand_story', 'promo_banner'].includes(type) && (
         <div className="admin-card p-5 space-y-5">
+          <div>
+            <h2 className="text-sm font-medium">{t('presentationHeading')}</h2>
+            <p className="text-xs text-stone-deep mt-1 leading-relaxed">
+              {t('presentationHint')}
+            </p>
+          </div>
           {type === 'hero' && (
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label={tm('layout')}>

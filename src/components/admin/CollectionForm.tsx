@@ -4,7 +4,7 @@ import MediaForm from './MediaForm';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import { api, ApiError } from '@/lib/admin-client';
 import Field from '@/components/admin/Field';
 import SingleImageInput from './SingleImageInput';
@@ -13,6 +13,7 @@ import {
   type ImagePresentation
 } from '@/lib/media/presentation';
 import { TrashIcon } from '@/components/ui/Icons';
+import { suggestSlug } from '@/lib/admin/slug';
 
 export interface CollectionFormInitial {
   id?: number;
@@ -48,6 +49,7 @@ export default function CollectionForm({
   const router = useRouter();
 
   const [form, setForm] = useState<CollectionFormInitial>(initial);
+  const [slugEdited, setSlugEdited] = useState(!!initial.id || !!initial.slug);
   const [busy, setBusy] = useState(false);
 
   const [notice, setNotice] = useState<{
@@ -61,6 +63,14 @@ export default function CollectionForm({
     value: CollectionFormInitial[K]
   ) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  function setEnglishName(nameEn: string) {
+    setForm((current) => ({
+      ...current,
+      nameEn,
+      slug: slugEdited ? current.slug : suggestSlug(nameEn)
+    }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -130,14 +140,25 @@ export default function CollectionForm({
 
   return (
     <MediaForm onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
+      <div className="admin-editor-intro">
+        <p className="eyebrow">{t('editorEyebrow')}</p>
+        <p className="display-heading text-2xl mt-2">{t('editorIntroTitle')}</p>
+        <p className="text-sm text-stone-deep leading-relaxed mt-2">
+          {t('editorIntro')}
+        </p>
+      </div>
       <div className="admin-card p-5 space-y-4">
+        <div>
+          <h2 className="text-sm font-medium">{t('detailsHeading')}</h2>
+          <p className="text-xs text-stone-deep mt-1">{t('detailsHint')}</p>
+        </div>
         <div className="grid md:grid-cols-2 gap-4">
           <Field label={t('nameEn')} error={fieldErrors.nameEn}>
             <input
               className="admin-input"
               dir="ltr"
               value={form.nameEn}
-              onChange={(e) => set('nameEn', e.target.value)}
+              onChange={(e) => setEnglishName(e.target.value)}
               required
               maxLength={120}
             />
@@ -153,16 +174,15 @@ export default function CollectionForm({
             />
           </Field>
         </div>
-        <Field
-          label={t('slug')}
-          hint="lowercase-with-hyphens"
-          error={fieldErrors.slug}
-        >
+        <Field label={t('slug')} hint={t('slugHint')} error={fieldErrors.slug}>
           <input
             className="admin-input"
             dir="ltr"
             value={form.slug}
-            onChange={(e) => set('slug', e.target.value)}
+            onChange={(e) => {
+              setSlugEdited(true);
+              set('slug', e.target.value);
+            }}
             required
             pattern="[a-z0-9]+(-[a-z0-9]+)*"
             maxLength={120}
@@ -191,6 +211,9 @@ export default function CollectionForm({
       </div>
 
       <div className="admin-card p-5">
+        <p className="text-xs text-stone-deep mb-4 leading-relaxed">
+          {t('imageHint')}
+        </p>
         <SingleImageInput
           label={t('image')}
           mediaId={form.imageMediaId}
@@ -207,24 +230,30 @@ export default function CollectionForm({
       </div>
 
       {/* Visibility + order */}
-      <div className="admin-card p-5 grid md:grid-cols-2 gap-4">
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={form.isVisible}
-            onChange={(e) => set('isVisible', e.target.checked)}
-          />
-          {t('visible')}
-        </label>
-        <Field label={t('sortOrder')}>
-          <input
-            className="admin-input"
-            dir="ltr"
-            inputMode="numeric"
-            value={form.sortOrder}
-            onChange={(e) => set('sortOrder', Number(e.target.value) || 0)}
-          />
-        </Field>
+      <div className="admin-card p-5 space-y-4">
+        <div>
+          <h2 className="text-sm font-medium">{t('visibilityHeading')}</h2>
+          <p className="text-xs text-stone-deep mt-1">{t('visibilityHint')}</p>
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.isVisible}
+              onChange={(e) => set('isVisible', e.target.checked)}
+            />
+            {t('visible')}
+          </label>
+          <Field label={t('sortOrder')} hint={t('sortOrderHint')}>
+            <input
+              className="admin-input"
+              dir="ltr"
+              inputMode="numeric"
+              value={form.sortOrder}
+              onChange={(e) => set('sortOrder', Number(e.target.value) || 0)}
+            />
+          </Field>
+        </div>
       </div>
 
       {/* Products */}
@@ -284,6 +313,15 @@ export default function CollectionForm({
             <TrashIcon size={14} />
             {tCommon('delete')}
           </button>
+        ) : null}
+        {form.id && form.isVisible && form.slug ? (
+          <Link
+            href={`/collections/${form.slug}`}
+            target="_blank"
+            className="admin-btn-secondary"
+          >
+            {t('viewCollection')}
+          </Link>
         ) : null}
       </div>
     </MediaForm>

@@ -4,12 +4,13 @@ import MediaForm from './MediaForm';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import { api, ApiError } from '@/lib/admin-client';
 import { toMinor, toMajor } from '@/lib/format';
 import Field from '@/components/admin/Field';
 import ImageUploader from '@/components/admin/ImageUploader';
 import { PlusIcon, TrashIcon } from '@/components/ui/Icons';
+import { suggestSlug } from '@/lib/admin/slug';
 
 export interface ProductFormInitial {
   id?: number;
@@ -59,6 +60,7 @@ export default function ProductForm({
   const router = useRouter();
 
   const [form, setForm] = useState<ProductFormInitial>(initial);
+  const [slugEdited, setSlugEdited] = useState(!!initial.id || !!initial.slug);
   const [priceText, setPriceText] = useState(toMajor(initial.price));
   const [compareText, setCompareText] = useState(
     toMajor(initial.compareAtPrice)
@@ -78,6 +80,14 @@ export default function ProductForm({
     value: ProductFormInitial[K]
   ) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  function setEnglishName(nameEn: string) {
+    setForm((current) => ({
+      ...current,
+      nameEn,
+      slug: slugEdited ? current.slug : suggestSlug(nameEn)
+    }));
   }
 
   // ── Variant helpers ────────────────────────────────────────────
@@ -239,15 +249,28 @@ export default function ProductForm({
 
   return (
     <MediaForm onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
+      <div className="admin-editor-intro">
+        <p className="eyebrow">{t('editorEyebrow')}</p>
+        <p className="display-heading text-2xl mt-2">{t('editorIntroTitle')}</p>
+        <p className="text-sm text-stone-deep leading-relaxed mt-2">
+          {t('editorIntro')}
+        </p>
+      </div>
       {/* Names + slug */}
       <div className="admin-card p-5 space-y-4">
+        <div>
+          <h2 className="text-sm font-medium">{t('detailsHeading')}</h2>
+          <p className="text-xs text-stone-deep leading-relaxed mt-1">
+            {t('detailsHint')}
+          </p>
+        </div>
         <div className="grid md:grid-cols-2 gap-4">
           <Field label={t('nameEn')} error={fieldErrors.nameEn}>
             <input
               className="admin-input"
               dir="ltr"
               value={form.nameEn}
-              onChange={(e) => set('nameEn', e.target.value)}
+              onChange={(e) => setEnglishName(e.target.value)}
               required
               maxLength={160}
             />
@@ -268,7 +291,10 @@ export default function ProductForm({
             className="admin-input"
             dir="ltr"
             value={form.slug}
-            onChange={(e) => set('slug', e.target.value)}
+            onChange={(e) => {
+              setSlugEdited(true);
+              set('slug', e.target.value);
+            }}
             required
             pattern="[a-z0-9]+(-[a-z0-9]+)*"
             maxLength={120}
@@ -298,6 +324,12 @@ export default function ProductForm({
 
       {/* Pricing + inventory */}
       <div className="admin-card p-5 space-y-4">
+        <div>
+          <h2 className="text-sm font-medium">{t('pricingHeading')}</h2>
+          <p className="text-xs text-stone-deep leading-relaxed mt-1">
+            {t('pricingHint')}
+          </p>
+        </div>
         <div className="grid md:grid-cols-3 gap-4">
           <Field label={t('price')} error={fieldErrors.price}>
             <input
@@ -309,7 +341,11 @@ export default function ProductForm({
               required
             />
           </Field>
-          <Field label={t('compareAtPrice')} error={fieldErrors.compareAtPrice}>
+          <Field
+            label={t('compareAtPrice')}
+            hint={t('compareAtHint')}
+            error={fieldErrors.compareAtPrice}
+          >
             <input
               className="admin-input"
               dir="ltr"
@@ -342,7 +378,7 @@ export default function ProductForm({
               onChange={(e) => setStockText(e.target.value)}
             />
           </Field>
-          <Field label={t('sortOrder')}>
+          <Field label={t('sortOrder')} hint={t('sortOrderHint')}>
             <input
               className="admin-input"
               dir="ltr"
@@ -356,7 +392,10 @@ export default function ProductForm({
 
       {/* Images */}
       <div className="admin-card p-5 space-y-3">
-        <p className="admin-label">{t('images')}</p>
+        <h2 className="text-sm font-medium">{t('images')}</h2>
+        <p className="text-xs text-stone-deep leading-relaxed">
+          {t('galleryHint')}
+        </p>
         <ImageUploader
           mediaIds={form.imageIds}
           onChange={(ids) => set('imageIds', ids)}
@@ -378,6 +417,9 @@ export default function ProductForm({
             {t('addVariant')}
           </button>
         </div>
+        <p className="text-xs text-stone-deep leading-relaxed">
+          {t('variantsHint')}
+        </p>
         {form.variants.map((variant, vi) => (
           <div key={variant.id} className="border border-line p-4 space-y-3">
             <div className="flex items-start gap-2">
@@ -459,6 +501,12 @@ export default function ProductForm({
 
       {/* Status + collections */}
       <div className="admin-card p-5 space-y-4">
+        <div>
+          <h2 className="text-sm font-medium">{t('visibilityHeading')}</h2>
+          <p className="text-xs text-stone-deep leading-relaxed mt-1">
+            {t('visibilityHint')}
+          </p>
+        </div>
         <div className="grid md:grid-cols-2 gap-4">
           <Field label={t('status')}>
             <select
@@ -494,6 +542,7 @@ export default function ProductForm({
 
         <div>
           <p className="admin-label">{t('collections')}</p>
+          <p className="text-xs text-stone-deep mb-3">{t('collectionsHint')}</p>
           {collections.length === 0 ? (
             <p className="text-sm text-stone">{t('noCollections')}</p>
           ) : (
@@ -549,6 +598,15 @@ export default function ProductForm({
             <TrashIcon size={14} />
             {tCommon('delete')}
           </button>
+        ) : null}
+        {form.id && form.status === 'active' && form.slug ? (
+          <Link
+            href={`/product/${form.slug}`}
+            target="_blank"
+            className="admin-btn-secondary"
+          >
+            {t('viewProduct')}
+          </Link>
         ) : null}
       </div>
     </MediaForm>

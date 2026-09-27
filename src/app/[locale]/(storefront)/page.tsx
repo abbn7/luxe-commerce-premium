@@ -1,11 +1,11 @@
-import HeroSection from '@/components/storefront/home/HeroSection';
 import { getLocale } from 'next-intl/server';
 import { visibleHomeSections } from '@/lib/db/repos/content';
 import { queryProducts, productsByIds } from '@/lib/db/repos/products';
 import { visibleLookbook } from '@/lib/db/repos/content';
-import { collectionById } from '@/lib/db/repos/collections';
+import { collectionById, visibleCollections } from '@/lib/db/repos/collections';
 import { getSettings } from '@/lib/db/repos/settings';
 import HomeSectionRenderer from '@/components/storefront/home/HomeSectionRenderer';
+import { fallbackHomeSections } from '@/lib/storefront/home-fallback';
 import type { Locale } from '@/i18n/routing';
 
 export const dynamic = 'force-dynamic';
@@ -20,29 +20,42 @@ export default async function HomePage() {
     ar: settings.locale.currencySymbolAr
   };
 
-  if (sections.length === 0)
-    return (
-      <HeroSection
-        locale={locale}
-        config={{
-          headlineEn: settings.branding.storeNameEn,
-          headlineAr: settings.branding.storeNameAr,
-          sublineEn: settings.branding.taglineEn,
-          sublineAr: settings.branding.taglineAr,
-          ctaLabelEn: 'Explore collections',
-          ctaLabelAr: 'اكتشف المجموعات',
-          ctaHref: '/collections'
-        }}
-      />
-    );
+  const displaySections =
+    sections.length === 0
+      ? (() => {
+          const products = queryProducts({ limit: 4, sort: 'newest' }).products;
+          const firstCollection = visibleCollections()[0];
+          const collectionId =
+            firstCollection &&
+            queryProducts({
+              collectionSlug: firstCollection.slug,
+              limit: 1
+            }).total > 0
+              ? firstCollection.id
+              : null;
+          return fallbackHomeSections(
+            {
+              headlineEn: settings.branding.storeNameEn,
+              headlineAr: settings.branding.storeNameAr,
+              sublineEn: settings.branding.taglineEn,
+              sublineAr: settings.branding.taglineAr,
+              ctaLabelEn: 'Explore collections',
+              ctaLabelAr: 'اكتشف المجموعات',
+              ctaHref: '/collections'
+            },
+            collectionId,
+            products.map((product) => product.id)
+          );
+        })()
+      : sections.map((section) => ({
+          id: section.id,
+          type: section.type,
+          config: JSON.parse(section.config)
+        }));
 
   return (
     <HomeSectionRenderer
-      sections={sections.map((s) => ({
-        id: s.id,
-        type: s.type,
-        config: JSON.parse(s.config)
-      }))}
+      sections={displaySections}
       locale={locale}
       currency={currency}
       resolveProducts={(ids) =>

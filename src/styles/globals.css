@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 /* ── LUXE design tokens ───────────────────────────────────────────
    Warm, restrained luxury palette. The accent color is overridden
@@ -205,7 +205,7 @@ body {
 }
 
 .link-luxe::after {
-  content: '';
+  content: "";
   position: absolute;
   inset-inline-start: 0;
   bottom: -3px;
@@ -218,7 +218,7 @@ body {
 }
 
 .link-luxe:hover::after,
-.link-luxe[aria-current='page']::after {
+.link-luxe[aria-current="page"]::after {
   transform: scaleX(1);
 }
 
@@ -283,7 +283,7 @@ select.field {
 }
 
 /* ── RTL icon mirroring ─────────────────────────────────────────── */
-[dir='rtl'] .rtl-flip {
+[dir="rtl"] .rtl-flip {
   transform: scaleX(-1);
 }
 
@@ -386,6 +386,112 @@ select.field {
   border-color: #8c2f2f;
 }
 
+/* Store-owner guidance uses the same restrained editorial language as the shop. */
+.admin-journey {
+  background: var(--porcelain);
+}
+.admin-journey-progress {
+  height: 3px;
+  background: var(--line);
+}
+.admin-journey-progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+.admin-journey-step {
+  border: 1px solid var(--line);
+  background: var(--porcelain);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.admin-journey-step:hover,
+.admin-journey-step:focus-visible {
+  border-color: var(--accent);
+  background: var(--ivory);
+}
+.admin-editor-intro {
+  border-inline-start: 2px solid var(--accent);
+  padding-inline-start: 1.25rem;
+}
+.admin-editor-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+.admin-editor-links a {
+  font-size: 0.75rem;
+  color: var(--stone-deep);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.admin-editor-links a:hover {
+  color: var(--ink);
+}
+.admin-editor-section {
+  scroll-margin-top: 5rem;
+}
+.admin-brand-preview {
+  border: 1px solid var(--line);
+  background: var(--porcelain);
+  padding: 1.25rem;
+}
+.admin-preview-tab {
+  min-height: 36px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--stone-deep);
+}
+.admin-preview-tab[aria-pressed="true"] {
+  color: var(--porcelain);
+  background: var(--ink);
+}
+.admin-brand-preview-canvas {
+  border: 1px solid var(--line);
+  background: var(--ivory);
+  overflow: hidden;
+}
+.admin-brand-preview-header {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--porcelain);
+}
+.admin-brand-preview-accent {
+  width: 34px;
+  height: 2px;
+  background: var(--preview-accent);
+}
+.admin-brand-preview-body {
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(1.5rem, 5vw, 3rem);
+}
+.admin-brand-preview-button {
+  display: inline-flex;
+  border: 1px solid var(--preview-accent);
+  padding: 0.7rem 1rem;
+  color: var(--ink);
+  font-size: 0.75rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-journey-progress span,
+  .admin-journey-step {
+    transition: none;
+  }
+}
+
 /* Shared image composition and editorial storefront system. */
 .smart-image {
   object-position: var(--image-position, 50% 50%);
@@ -476,11 +582,11 @@ select.field {
   margin-top: 2.5rem;
   max-width: 100%;
 }
-.hero-stage[data-align='start'] .hero-copy {
+.hero-stage[data-align="start"] .hero-copy {
   align-items: flex-start;
   text-align: start;
 }
-.hero-stage[data-align='end'] .hero-copy {
+.hero-stage[data-align="end"] .hero-copy {
   align-items: flex-end;
   text-align: end;
 }
@@ -729,7 +835,7 @@ dialog::backdrop {
   text-align: start;
   background: var(--ivory);
 }
-.media-library-item[aria-pressed='true'] {
+.media-library-item[aria-pressed="true"] {
   border-color: var(--accent);
 }
 .media-library-item img {
@@ -792,7 +898,7 @@ dialog::backdrop {
   padding: 0.5rem 0.75rem;
   font-size: 0.75rem;
 }
-.segmented-control button[aria-pressed='true'] {
+.segmented-control button[aria-pressed="true"] {
   background: var(--ink);
   color: var(--porcelain);
 }
@@ -899,7 +1005,7 @@ dialog::backdrop {
   scroll-snap-align: start;
   background: var(--ivory);
 }
-.gallery-thumbnails button[aria-pressed='true'] {
+.gallery-thumbnails button[aria-pressed="true"] {
   border-color: var(--ink);
   outline: 1px solid var(--ink);
 }
@@ -989,6 +1095,14 @@ dialog::backdrop {
   gap: 0.25rem;
   grid-column: 2;
   grid-row: 1;
+}
+.header-actions .mobile-hidden-action {
+  display: none;
+}
+@media (min-width: 640px) {
+  .header-actions .mobile-hidden-action {
+    display: inline-grid;
+  }
 }
 main#main-content {
   padding-top: 120px;
@@ -1093,7 +1207,7 @@ main#main-content {
   grid-column: 1/-1;
   aspect-ratio: 6/1;
 }
-form[aria-busy='true'] button[type='submit'] {
+form[aria-busy="true"] button[type="submit"] {
   opacity: 0.5;
   cursor: wait;
 }
@@ -1121,11 +1235,11 @@ form[aria-busy='true'] button[type='submit'] {
   border: 1px solid var(--line);
   box-shadow: 0 4px 18px #1615130a;
 }
-[lang='ar'] {
+[lang="ar"] {
   --font-display: var(--font-display-ar), serif;
   --font-body: var(--font-body-ar), sans-serif;
 }
-[lang='en'] {
+[lang="en"] {
   --font-display: var(--font-display-en), serif;
   --font-body: var(--font-body-en), sans-serif;
 }

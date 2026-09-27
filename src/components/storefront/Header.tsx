@@ -154,7 +154,7 @@ export default function Header({
             <Link
               href="/wishlist"
               aria-label={t('wishlist')}
-              className="icon-button hidden sm:grid relative"
+              className="icon-button mobile-hidden-action relative"
             >
               <HeartIcon size={20} />
               {wishlist.length > 0 && (

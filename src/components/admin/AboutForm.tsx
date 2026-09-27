@@ -4,7 +4,7 @@ import MediaForm from './MediaForm';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import { api, ApiError } from '@/lib/admin-client';
 import Field from '@/components/admin/Field';
 import ImageUploader from '@/components/admin/ImageUploader';
@@ -62,7 +62,15 @@ export default function AboutForm({ initial }: { initial: AboutFormInitial }) {
 
   return (
     <MediaForm onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
+      <div className="admin-editor-intro">
+        <p className="eyebrow">{t('editorEyebrow')}</p>
+        <p className="display-heading text-2xl mt-2">{t('editorIntroTitle')}</p>
+        <p className="text-sm text-stone-deep leading-relaxed mt-2">
+          {t('editorIntro')}
+        </p>
+      </div>
       <div className="admin-card p-5 space-y-4">
+        <p className="text-xs text-stone-deep">{t('storyHint')}</p>
         <div className="grid md:grid-cols-2 gap-4">
           <Field label={t('pageTitleEn')} error={fieldErrors.titleEn}>
             <input
@@ -107,6 +115,9 @@ export default function AboutForm({ initial }: { initial: AboutFormInitial }) {
 
       <div className="admin-card p-5 space-y-3">
         <p className="admin-label">{t('images')}</p>
+        <p className="text-xs text-stone-deep leading-relaxed">
+          {t('imagesHint')}
+        </p>
         <ImageUploader
           preset="editorial"
           mediaIds={form.imageIds}
@@ -123,9 +134,14 @@ export default function AboutForm({ initial }: { initial: AboutFormInitial }) {
           {notice.text}
         </p>
       ) : null}
-      <button type="submit" className="admin-btn" disabled={busy}>
-        {busy ? '…' : tCommon('save')}
-      </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="submit" className="admin-btn" disabled={busy}>
+          {busy ? '…' : tCommon('save')}
+        </button>
+        <Link href="/about" target="_blank" className="admin-btn-secondary">
+          {t('viewAbout')}
+        </Link>
+      </div>
     </MediaForm>
   );
 }

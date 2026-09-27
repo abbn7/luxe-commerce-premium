@@ -8,6 +8,33 @@ const {
 const React = require('react');
 const { renderToStaticMarkup } = require('react-dom/server');
 const SmartImage = require('../src/components/ui/SmartImage.tsx').default;
+const { suggestSlug } = require('../src/lib/admin/slug.ts');
+const {
+  fallbackHomeSections
+} = require('../src/lib/storefront/home-fallback.ts');
+
+test('product URL suggestion turns an English name into a safe readable path', () => {
+  assert.equal(suggestSlug('The Sculpted Tote'), 'the-sculpted-tote');
+  assert.equal(suggestSlug('  Édition No. 02 / Silk  '), 'edition-no-02-silk');
+  assert.equal(suggestSlug('!!!'), '');
+});
+
+test('an unconfigured homepage uses available catalog content without replacing the brand hero', () => {
+  const hero = { headlineEn: 'Maison', headlineAr: 'ميزون' };
+  assert.deepEqual(
+    fallbackHomeSections(hero, 7, [2, 3]).map((s) => s.type),
+    ['hero', 'collection_highlight']
+  );
+  assert.equal(fallbackHomeSections(hero, 7, [2]).at(1).config.collectionId, 7);
+  assert.deepEqual(
+    fallbackHomeSections(hero, null, [2, 3]).map((s) => s.type),
+    ['hero', 'featured_products']
+  );
+  assert.deepEqual(
+    fallbackHomeSections(hero, null, []).map((s) => s.type),
+    ['hero']
+  );
+});
 
 test('legacy hero content gains compatible presentation defaults without losing its text or image', () => {
   const hero = homeSectionConfigSchemas.hero.parse({

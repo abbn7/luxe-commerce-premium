@@ -15,25 +15,42 @@ export interface PolicyFormInitial {
   isVisible: boolean;
 }
 
-const POLICY_KEYS: PolicyFormInitial['key'][] = ['shipping', 'returns', 'privacy', 'terms'];
+const POLICY_KEYS: PolicyFormInitial['key'][] = [
+  'shipping',
+  'returns',
+  'privacy',
+  'terms'
+];
 
 /** Tabbed editor for the four fixed policy pages. */
-export default function PoliciesEditor({ policies }: { policies: PolicyFormInitial[] }) {
+export default function PoliciesEditor({
+  policies
+}: {
+  policies: PolicyFormInitial[];
+}) {
   const t = useTranslations('admin.policies');
   const tCommon = useTranslations('admin.common');
   const router = useRouter();
 
-  const [activeKey, setActiveKey] = useState<PolicyFormInitial['key']>(policies[0]?.key ?? 'shipping');
+  const [activeKey, setActiveKey] = useState<PolicyFormInitial['key']>(
+    policies[0]?.key ?? 'shipping'
+  );
   const [forms, setForms] = useState<Record<string, PolicyFormInitial>>(
     Object.fromEntries(policies.map((p) => [p.key, p]))
   );
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    kind: 'ok' | 'err';
+    text: string;
+  } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const active = forms[activeKey];
 
-  function set<K extends keyof PolicyFormInitial>(key: K, value: PolicyFormInitial[K]) {
+  function set<K extends keyof PolicyFormInitial>(
+    key: K,
+    value: PolicyFormInitial[K]
+  ) {
     setForms((f) => ({ ...f, [activeKey]: { ...f[activeKey], [key]: value } }));
   }
 
@@ -59,8 +76,19 @@ export default function PoliciesEditor({ policies }: { policies: PolicyFormIniti
 
   return (
     <div className="space-y-6 max-w-3xl">
+      <div className="admin-editor-intro">
+        <p className="eyebrow">{t('editorEyebrow')}</p>
+        <p className="display-heading text-2xl mt-2">{t('editorIntroTitle')}</p>
+        <p className="text-sm text-stone-deep leading-relaxed mt-2">
+          {t('editorIntro')}
+        </p>
+      </div>
       {/* Policy tabs */}
-      <div role="tablist" aria-label={t('title')} className="flex flex-wrap gap-2">
+      <div
+        role="tablist"
+        aria-label={t('title')}
+        className="flex flex-wrap gap-2"
+      >
         {POLICY_KEYS.filter((k) => forms[k]).map((k) => (
           <button
             key={k}
@@ -79,12 +107,22 @@ export default function PoliciesEditor({ policies }: { policies: PolicyFormIniti
             }`}
           >
             {t(k)}
-            {forms[k].isVisible ? null : <span className="ms-1.5 text-xs opacity-60">○</span>}
+            {forms[k].isVisible ? null : (
+              <span className="ms-1.5 text-xs opacity-60">○</span>
+            )}
           </button>
         ))}
       </div>
 
-      <form onSubmit={handleSubmit} className="admin-card p-5 space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="admin-card p-5 space-y-4"
+        role="tabpanel"
+        aria-label={t(activeKey)}
+      >
+        <p className="text-xs text-stone-deep leading-relaxed">
+          {t('tabHint')}
+        </p>
         <div className="grid md:grid-cols-2 gap-4">
           <Field label={t('titleEn')} error={fieldErrors.titleEn}>
             <input
@@ -133,9 +171,13 @@ export default function PoliciesEditor({ policies }: { policies: PolicyFormIniti
           />
           {t('visible')}
         </label>
+        <p className="text-xs text-stone-deep">{t('visibleHint')}</p>
 
         {notice ? (
-          <p role="status" className={`text-sm ${notice.kind === 'ok' ? 'text-[#2f6b4f]' : 'text-[#8c2f2f]'}`}>
+          <p
+            role="status"
+            className={`text-sm ${notice.kind === 'ok' ? 'text-[#2f6b4f]' : 'text-[#8c2f2f]'}`}
+          >
             {notice.text}
           </p>
         ) : null}

@@ -8,6 +8,7 @@ import { useRouter } from '@/i18n/navigation';
 import { api, ApiError } from '@/lib/admin-client';
 import Field from '@/components/admin/Field';
 import SingleImageInput from '@/components/admin/SingleImageInput';
+import SmartImage from '@/components/ui/SmartImage';
 import { toMinor, toMajor } from '@/lib/format';
 import type { Settings } from '@/lib/db/repos/settings';
 
@@ -18,6 +19,9 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
   const router = useRouter();
 
   const [form, setForm] = useState<Settings>(initial);
+  const [previewLocale, setPreviewLocale] = useState<'en' | 'ar'>(
+    initial.locale.defaultLocale
+  );
   const [flatFee, setFlatFee] = useState(toMajor(initial.shipping.flatFee));
   const [freeOver, setFreeOver] = useState(
     toMajor(initial.shipping.freeOverThreshold)
@@ -31,6 +35,9 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
     text: string;
   } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const previewAccent = /^#[0-9a-fA-F]{6}$/.test(form.theme.accentColor)
+    ? form.theme.accentColor
+    : initial.theme.accentColor;
 
   function setGroup<K extends keyof Settings>(
     group: K,
@@ -93,9 +100,33 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
 
   return (
     <MediaForm onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
+      <div className="admin-editor-intro">
+        <p className="eyebrow">{t('identityEyebrow')}</p>
+        <p className="display-heading text-2xl mt-2">
+          {t('identityIntroTitle')}
+        </p>
+        <p className="text-sm text-stone-deep leading-relaxed mt-2">
+          {t('identityIntro')}
+        </p>
+        <nav className="admin-editor-links mt-5" aria-label={t('jumpTo')}>
+          {(
+            ['identity', 'contact', 'social', 'locale', 'shipping'] as const
+          ).map((key) => (
+            <a key={key} href={`#branding-${key}`}>
+              {key === 'identity' ? t('title') : t(key)}
+            </a>
+          ))}
+        </nav>
+      </div>
       {/* Branding */}
-      <div className="admin-card p-5 space-y-4">
+      <section
+        id="branding-identity"
+        className="admin-card admin-editor-section p-5 space-y-4"
+      >
         <h2 className="text-sm font-medium">{t('title')}</h2>
+        <p className="text-xs text-stone-deep leading-relaxed">
+          {t('identityHint')}
+        </p>
         <div className="grid md:grid-cols-2 gap-4">
           <Field label={t('storeNameEn')} error={fieldErrors.storeNameEn}>
             <input
@@ -188,11 +219,85 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
             />
           </div>
         </Field>
-      </div>
+      </section>
+
+      <section className="admin-brand-preview" aria-label={t('previewTitle')}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-medium">{t('previewTitle')}</h2>
+            <p className="text-xs text-stone-deep mt-1">{t('previewHint')}</p>
+          </div>
+          <div
+            className="inline-flex border border-line p-0.5"
+            aria-label={t('previewLanguage')}
+          >
+            {(['en', 'ar'] as const).map((language) => (
+              <button
+                key={language}
+                type="button"
+                onClick={() => setPreviewLocale(language)}
+                aria-pressed={previewLocale === language}
+                className="admin-preview-tab"
+              >
+                {language === 'en' ? 'English' : 'العربية'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div
+          className="admin-brand-preview-canvas mt-5"
+          dir={previewLocale === 'ar' ? 'rtl' : 'ltr'}
+          lang={previewLocale}
+          style={{ ['--preview-accent' as string]: previewAccent }}
+        >
+          <div className="admin-brand-preview-header">
+            {form.branding.logoMediaId ? (
+              <span className="relative block w-28 h-10">
+                <SmartImage
+                  mediaId={form.branding.logoMediaId}
+                  alt={t('logo')}
+                  sizes="112px"
+                  fit="contain"
+                />
+              </span>
+            ) : (
+              <span className="display-heading text-xl uppercase">
+                {previewLocale === 'ar'
+                  ? form.branding.storeNameAr
+                  : form.branding.storeNameEn}
+              </span>
+            )}
+            <span className="admin-brand-preview-accent" aria-hidden="true" />
+          </div>
+          <div className="admin-brand-preview-body">
+            <p className="eyebrow">
+              {previewLocale === 'ar'
+                ? form.branding.storeNameAr
+                : form.branding.storeNameEn}
+            </p>
+            <p className="display-heading text-2xl sm:text-4xl leading-tight mt-2 max-w-[22ch]">
+              {previewLocale === 'ar'
+                ? form.branding.taglineAr
+                : form.branding.taglineEn}
+            </p>
+            <span className="admin-brand-preview-button mt-5">
+              {previewLocale === 'ar'
+                ? t('previewActionAr')
+                : t('previewActionEn')}
+            </span>
+          </div>
+        </div>
+      </section>
 
       {/* Contact */}
-      <div className="admin-card p-5 space-y-4">
+      <section
+        id="branding-contact"
+        className="admin-card admin-editor-section p-5 space-y-4"
+      >
         <h2 className="text-sm font-medium">{t('contact')}</h2>
+        <p className="text-xs text-stone-deep leading-relaxed">
+          {t('contactHint')}
+        </p>
         <div className="grid md:grid-cols-2 gap-4">
           <Field label={t('phone')}>
             <input
@@ -249,11 +354,17 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
             />
           </Field>
         </div>
-      </div>
+      </section>
 
       {/* Social */}
-      <div className="admin-card p-5 space-y-4">
+      <section
+        id="branding-social"
+        className="admin-card admin-editor-section p-5 space-y-4"
+      >
         <h2 className="text-sm font-medium">{t('social')}</h2>
+        <p className="text-xs text-stone-deep leading-relaxed">
+          {t('socialHint')}
+        </p>
         <div className="grid md:grid-cols-2 gap-4">
           {(['instagram', 'facebook', 'tiktok', 'x', 'youtube'] as const).map(
             (key) => (
@@ -273,11 +384,17 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
             )
           )}
         </div>
-      </div>
+      </section>
 
       {/* Locale & currency */}
-      <div className="admin-card p-5 space-y-4">
+      <section
+        id="branding-locale"
+        className="admin-card admin-editor-section p-5 space-y-4"
+      >
         <h2 className="text-sm font-medium">{t('locale')}</h2>
+        <p className="text-xs text-stone-deep leading-relaxed">
+          {t('localeHint')}
+        </p>
         <div className="grid md:grid-cols-2 gap-4">
           <Field label={t('defaultLocale')}>
             <select
@@ -330,11 +447,17 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
             />
           </Field>
         </div>
-      </div>
+      </section>
 
       {/* Shipping & checkout */}
-      <div className="admin-card p-5 space-y-4">
+      <section
+        id="branding-shipping"
+        className="admin-card admin-editor-section p-5 space-y-4"
+      >
         <h2 className="text-sm font-medium">{t('shipping')}</h2>
+        <p className="text-xs text-stone-deep leading-relaxed">
+          {t('shippingHint')}
+        </p>
         <div className="grid md:grid-cols-2 gap-4">
           <Field label={t('flatFee')} error={fieldErrors.shipping}>
             <input
@@ -370,7 +493,7 @@ export default function BrandingForm({ initial }: { initial: Settings }) {
             onChange={(e) => setGovernoratesText(e.target.value)}
           />
         </Field>
-      </div>
+      </section>
 
       {notice ? (
         <p

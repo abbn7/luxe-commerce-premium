@@ -61,7 +61,7 @@ export default function ProductCard({
           <div className="absolute inset-0 opacity-0 transition-opacity duration-700 group-hover:opacity-100">
             <SmartImage
               mediaId={hover}
-              alt={product.name}
+              alt=""
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           </div>
